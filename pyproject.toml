@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "gpt-drawer"
+version = "0.1.0"
+description = ""
+authors = ["Jan Rydzewski <flegmer@gmail.com>"]
+readme = "README.md"
+packages = [{include = "gpt_drawer"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = ">=3.2.0,<3.3.0"
+django-environ = "^0.9.0"
+psycopg2 = "^2.9.5"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.0.0"
+flake8-isort = "^6.0.0"
+flake8-pyproject = "^1.2.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.flake8]
+exclude = '''
+    .git/*,
+'''
+max-line-length = 119
+
+[tool.isort]
+skip_gitignore = true
+line_length = 119
+lines_after_imports = 2
+# 5 = Hanging Grid Grouped
+multi_line_output = 5
+include_trailing_comma = true
