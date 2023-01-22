@@ -1,0 +1,12 @@
+# Processes
+
+Inputing notes from text
+Refactoring notes - splitting
+
+# Command for extracting notes from text
+
+Identify the main ideas or concepts presented in the text, and create a separate note for each one. Each note should be a summary of the idea or concept, and should be able to stand alone without the context of the other notes. Use references denoted by double square brackets to link related notes together.
+
+# Command for splitting the note into more atomic notes
+
+Break down the note into smaller, atomic notes that focus on one main idea or concept. Each note should be able to stand alone, without the context of the other notes. Use references denoted by double square brackets to link related notes together.

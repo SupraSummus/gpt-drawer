@@ -1,0 +1,15 @@
+# The text
+
+{{ text }}
+
+# The task
+
+Identify the main ideas or concepts presented in the text, and create a separate note for each one. Each note should be a summary of the idea or concept, and should be able to stand alone without the context of the other notes. Use references denoted by double square brackets to link related notes together.
+
+## Example note - apple
+
+Apples are a type of fruit. They grow on [[ apple trees ]]. They come in different colors like red, green and yellow. Apples are a good source of [[ vitamin C ]]. You can eat them raw or cook them in [[ Apple pies ]].
+
+# The solution
+
+## Note 1 -

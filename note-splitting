@@ -1,0 +1,13 @@
+# The note - {{ title }}
+
+{{ text }}
+
+# The task
+
+{{ output from atomicity test }}
+
+Break down the note into smaller, atomic notes that focus on one main idea or concept. Each note should be able to stand alone, without the context of the other notes. Use references denoted by double square brackets to link related notes together.
+
+# The solution
+
+## Note 1 - {{ title }}

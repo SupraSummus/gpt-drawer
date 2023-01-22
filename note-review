@@ -1,0 +1,24 @@
+# The note
+
+Title: {{ title }}
+
+{{ text }}
+
+# Related notes
+
+- {{ related note title }}
+- {{ ... }}
+
+# The questions
+
+1. Is the title of the main note appropriate and meaningful in relation to the content of the note? If not, what should be the title of the note?
+
+2. Does the main note provide enough information for the reader to understand the main idea or concept presented, without the need for additional context or side notes? What is the additional context needed if any?
+
+3. Is the main note discussing multiple distinct topics, or is it focused on one main idea or concept aligned with the title? If multiple distinct topics, what are they?
+
+4. After reading the note, what questions do you have about the main idea or concept presented, and any key terms or concepts that are central to the topic?
+
+# The answers
+
+1.

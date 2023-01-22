@@ -1,0 +1,24 @@
+# The note
+
+Title: {{ title }}
+
+{{ text }}
+
+# Related notes
+
+- {{ related note A title }}
+- {{ related note B title }}
+- {{ ... }}
+
+# Task
+
+Make a comprehensive list of questions arising or areas of confusion you have about the note. For each point determine in which note the answer would fit best. Use titles that are already mentioned. Always consider assigning the answer to the current note.
+
+The purpose of this exercise is to verify if the note is complete or if it is lacking crucial data.
+
+Example of a single entry:
+- [ the question or area of confusion ] # [ note title where the answer fits ]
+
+# Solution
+
+-
