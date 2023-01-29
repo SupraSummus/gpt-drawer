@@ -1,13 +1,14 @@
 # The note
 
 Title: {{ title }}
+Alias: {{ alias }}
+Alias: {{ ... }}
 
 {{ text }}
 
 # Related notes
 
-- {{ related note A title }}
-- {{ related note B title }}
+- {{ related note title }}
 - {{ ... }}
 
 # Task
@@ -20,5 +21,24 @@ Example of a single entry:
 - [ the question or area of confusion ] # [ note title where the answer fits ]
 
 # Solution
+
+-
+
+
+
+
+
+
+
+
+
+
+
+# Task
+
+Make a comprehensive list of areas of confusion you have about the note. Include any questions you have that are not answered in the note. Include ideas or topics that have not been covered in sufficient detail.
+
+# Solution
+(This solution is extremely good at pointing out the questions that need to be answered.)
 
 -
