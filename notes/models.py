@@ -1,7 +1,8 @@
-from django.db import models
 import uuid
-from django.utils.translation import gettext_lazy as _
+
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 User = get_user_model()
@@ -24,7 +25,7 @@ class NoteBook(models.Model):
         verbose_name_plural = _('notebooks')
 
 
-class NoteBookAccess(models.Model):
+class NoteBookUserPermission(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -34,19 +35,19 @@ class NoteBookAccess(models.Model):
     notebook = models.ForeignKey(
         to=NoteBook,
         on_delete=models.CASCADE,
-        related_name='accesses',
+        related_name='user_permissions',
         verbose_name=_('notebook'),
     )
     user = models.ForeignKey(
         to=User,
         on_delete=models.CASCADE,
-        related_name='notebook_accesses',
+        related_name='notebook_permissions',
         verbose_name=_('user'),
     )
 
     class Meta:
-        verbose_name = _('notebook access')
-        verbose_name_plural = _('notebook accesses')
+        verbose_name = _('notebook user permission')
+        verbose_name_plural = _('notebook user permissions')
         unique_together = (
             ('notebook', 'user'),
         )
