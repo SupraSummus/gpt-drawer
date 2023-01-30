@@ -34,8 +34,7 @@ export default {
 	output: {
 		sourcemap: true,
 		format: 'iife',
-		name: 'app',
-		file: 'public/build/bundle.js'
+		file: 'staticdir/bundle.js'
 	},
 	plugins: [
 		svelte({
@@ -60,15 +59,16 @@ export default {
 		commonjs(),
 		replace({
 			'process.env.NODE_ENV': JSON.stringify('production'),
+			preventAssignment: true
 		}),
 
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated
 		!production && serve(),
 
-		// Watch the `public` directory and refresh the
+		// Watch the serve directory and refresh the
 		// browser on changes when not in production
-		!production && livereload('public'),
+		!production && livereload('staticdir'),
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify

@@ -1,10 +1,8 @@
-import App from './App.svelte';
+import Notebook from './Notebook.svelte';
 
-const app = new App({
-	target: document.body,
-	props: {
-		name: 'world'
-	}
-});
-
-export default app;
+for (let element of document.querySelectorAll('.notebook')) {
+	new Notebook({
+		target: element,
+		props: element.dataset,
+	});
+}
