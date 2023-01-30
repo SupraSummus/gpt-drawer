@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Notebooks{% endblock %}
+
+{% block content %}
+    <h1>Notebooks</h1>
+    <ul>
+        {% for notebook in notebooks %}
+            <li><a href="{% url 'notebook-detail' notebook.id %}">{{ notebook.title }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
