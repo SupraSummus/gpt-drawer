@@ -8,11 +8,29 @@
 
         <title>{% block title %}GPT drawer{% endblock %}</title>
 
+        <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css">
         <link rel="stylesheet" href="{% static 'bundle.css' %}">
-        <script async src="{% static 'bundle.js' %}"></script>
+        <script defer src="{% static 'bundle.js' %}"></script>
     </head>
     <body>
+        <header class="container">
+            <nav>
+                <ul>
+                    <li><strong>GPT drawer</strong></li>
+                </ul>
+                <ul>
+                    <li><a href="#">Link</a></li>
+                    <li><a href="#">Link</a></li>
+                    <li><a href="#" role="button">Button</a></li>
+                </ul>
+            </nav>
+        </header>
+
         {% block content %}
         {% endblock %}
+
+        <footer class="container">
+            <p>Footer</p>
+        </footer>
     </body>
 </html>
