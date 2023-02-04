@@ -1,7 +1,7 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,14 +13,14 @@
         <script defer src="{% static 'bundle.js' %}"></script>
     </head>
     <body>
-        <header class="container">
+        <header class="container main-header">
             <nav>
                 <ul>
-                    <li><strong>GPT drawer</strong></li>
+                    <li><strong><a href="{% url 'home' %}">GPT drawer</a></strong></li>
                 </ul>
                 <ul>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Link</a></li>
+                    <li><a href="{% url 'notebook-list' %}">Notebooks</a></li>
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
                     <li><a href="#" role="button">Button</a></li>
                 </ul>
             </nav>
@@ -29,7 +29,7 @@
         {% block content %}
         {% endblock %}
 
-        <footer class="container">
+        <footer class="container main-footer">
             <p>Footer</p>
         </footer>
     </body>

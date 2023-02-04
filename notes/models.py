@@ -8,6 +8,11 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 
+class NoteBookQuerySet(models.QuerySet):
+    def accessible_by_user(self, user):
+        return self.filter(user_permissions__user=user)
+
+
 class NoteBook(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -19,6 +24,8 @@ class NoteBook(models.Model):
         max_length=64,
         verbose_name=_('title'),
     )
+
+    objects = NoteBookQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('notebook')
@@ -54,6 +61,11 @@ class NoteBookUserPermission(models.Model):
         ordering = ('notebook', 'user')
 
 
+class NoteQuerySet(models.QuerySet):
+    def accessible_by_user(self, user):
+        return self.filter(notebook__user_permissions__user=user)
+
+
 class Note(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -75,6 +87,8 @@ class Note(models.Model):
         verbose_name=_('content'),
         blank=True,
     )
+
+    objects = NoteQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('note')

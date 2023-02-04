@@ -1,5 +1,4 @@
 <script>
-	import Note from './Note.svelte'
 	import NoteSearch from './NoteSearch.svelte'
 
 	let id
@@ -11,10 +10,15 @@
 	}
 </script>
 
-<h1>Notebook</h1>
-<p>{ title }</p>
+<header>
+	<h1>Notebook</h1>
+	<p>{ title }</p>
+</header>
 <NoteSearch notebook_id={id} />
-<Note />
 
 <style>
+	header h1 {
+		font-size: 2rem;
+		margin: 0;
+	}
 </style>
