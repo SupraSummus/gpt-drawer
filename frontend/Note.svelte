@@ -1,97 +1,41 @@
 <script>
-  import { onMount, onDestroy } from 'svelte'
-  import { Editor } from '@tiptap/core'
-  import Document from '@tiptap/extension-document'
-  import Paragraph from '@tiptap/extension-paragraph'
-  import Text from '@tiptap/extension-text'
-  import Link from '@tiptap/extension-link'
-  import BubbleMenu from '@tiptap/extension-bubble-menu'
+  import axios from 'axios'
+	import { createEventDispatcher } from 'svelte'
 
-  let element
-  let bubble_menu_element
-  let editor
+  let id
+  let dispatch = createEventDispatcher()
 
-  onMount(() => {
-    editor = new Editor({
-      element: element,
-      extensions: [
-        Document,
-        Paragraph,
-        Text,
+  $: note_data_promise = axios.get(`/api/notes/${id}/`).then(response => response.data)
 
-        Link.configure({
-          protocols: ['ftp', 'mailto'],
-        }),
-
-        BubbleMenu.configure({
-          element: bubble_menu_element,
-        }),
-      ],
-      content: '<p>Hello World! 🌍️ </p>',
-      onTransaction: () => {
-        // force re-render so `editor.isActive` works as expected
-        editor = editor
-      },
-    })
-  })
-
-  onDestroy(() => {
-    if (editor) {
-      editor.destroy()
-    }
-  })
+  export { id }
 </script>
 
-{#if editor}
-  <button
-    on:click={() => editor.chain().focus().toggleHeading({ level: 1}).run()}
-    class:active={editor.isActive('heading', { level: 1 })}
-  >
-    H1
-  </button>
-  <button
-    on:click={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-    class:active={editor.isActive('heading', { level: 2 })}
-  >
-    H2
-  </button>
-  <button on:click={() => editor.chain().focus().setParagraph().run()} class:active={editor.isActive('paragraph')}>
-    P
-  </button>
-{/if}
-
-<div bind:this={element} class='editor'>
-  <div bind:this={bubble_menu_element}>
-    <p>eee</p>
-  </div>
-</div>
-
-{#if editor}
-  <div class='output'>
-    <pre>{editor.getText()}</pre>
-  </div>
-  <div class='output'>
-    <pre>{editor.getHTML()}</pre>
-  </div>
-  <div class='output'>
-    <pre>{JSON.stringify(editor.getJSON(), null, 2)}</pre>
-  </div>
-{/if}
+<article>
+  <header>
+    <a href aria-label="Close" class="close"
+      on:click|preventDefault={() => dispatch('close', id)}
+    >Close</a>
+    <h2 class="title">{#await note_data_promise then data} {data.title} {/await}</h2>
+  </header>
+  <p class="content">
+    {#await note_data_promise then data} {data.content} {/await}
+  </p>
+</article>
 
 <style>
-  button.active {
-    background: black;
-    color: white;
+  header {
+    margin-bottom: 0;
   }
 
-  .editor {
-    margin-top: 1em;
-    border: 1px solid #ccc;
-    min-height: 200px;
+  .close {
+    float: right;
   }
 
-  .output {
-    margin-top: 1em;
-    border: 1px solid #ccc;
+  .title {
+    margin: 0;
+  }
+
+  .content {
+    margin: 0;
   }
 </style>

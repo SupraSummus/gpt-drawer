@@ -28,8 +28,9 @@ class NoteSerializer(serializers.ModelSerializer):
         view_name='api:note-detail',
         lookup_field='pk',
     )
-    notebook = PrimaryKeyRelatedAccessibleByUserField(
+    notebook_id = PrimaryKeyRelatedAccessibleByUserField(
         queryset=NoteBook.objects.all(),
+        source='notebook',
     )
 
     class Meta:
@@ -37,7 +38,7 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = (
             '_detail_url',
             'id',
-            'notebook',
+            'notebook_id',
             'title',
             'content',
         )

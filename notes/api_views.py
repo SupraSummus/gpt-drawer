@@ -1,5 +1,6 @@
 import django_filters
 from django.db.models import Q
+from django.utils.translation import gettext as _
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Note, NoteBook
@@ -20,12 +21,17 @@ class ModelChoiceAccessibleByUserFilter(django_filters.ModelChoiceFilter):
 
 
 class NoteFiterSet(django_filters.FilterSet):
-    notebook = ModelChoiceAccessibleByUserFilter(queryset=NoteBook.objects.all())
-    search = django_filters.CharFilter(method='search_filter')
+    notebook_id = ModelChoiceAccessibleByUserFilter(
+        queryset=NoteBook.objects.all()
+    )
+    search = django_filters.CharFilter(
+        method='search_filter',
+        label=_('Search'),
+    )
 
     class Meta:
         model = Note
-        fields = ('notebook',)
+        fields = ()
 
     def search_filter(self, queryset, name, value):
         return queryset.filter(
