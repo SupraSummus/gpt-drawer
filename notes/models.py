@@ -8,12 +8,12 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 
-class NoteBookQuerySet(models.QuerySet):
+class NotebookQuerySet(models.QuerySet):
     def accessible_by_user(self, user):
         return self.filter(user_permissions__user=user)
 
 
-class NoteBook(models.Model):
+class Notebook(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -25,14 +25,14 @@ class NoteBook(models.Model):
         verbose_name=_('title'),
     )
 
-    objects = NoteBookQuerySet.as_manager()
+    objects = NotebookQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('notebook')
         verbose_name_plural = _('notebooks')
 
 
-class NoteBookUserPermission(models.Model):
+class NotebookUserPermission(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -40,7 +40,7 @@ class NoteBookUserPermission(models.Model):
         verbose_name=_('identifier'),
     )
     notebook = models.ForeignKey(
-        to=NoteBook,
+        to=Notebook,
         on_delete=models.CASCADE,
         related_name='user_permissions',
         verbose_name=_('notebook'),
@@ -74,7 +74,7 @@ class Note(models.Model):
         verbose_name=_('identifier'),
     )
     notebook = models.ForeignKey(
-        to=NoteBook,
+        to=Notebook,
         on_delete=models.CASCADE,
         related_name='notes',
         verbose_name=_('notebook'),
@@ -97,6 +97,45 @@ class Note(models.Model):
             ('notebook', 'title'),
         )
         ordering = ('notebook', 'title')
+
+    def set_aliases(self, aliases):
+        to_delete = {
+            alias.title: alias
+            for alias in self.aliases.all()
+        }
+        to_create = {}
+        to_keep = {}
+        for alias in aliases:
+            assert alias.note == self
+            if alias.title in to_delete:
+                del to_delete[alias.title]
+                to_keep[alias.title] = alias
+            elif alias.title in to_create or alias.title in to_keep:
+                pass
+            else:
+                to_create[alias.title] = alias
+        Alias.objects.bulk_create(to_create.values())
+        Alias.objects.filter(id__in=[alias.id for alias in to_delete.values()]).delete()
+
+    def set_references(self, references):
+        to_delete = {
+            reference.target_note: reference
+            for reference in self.references.all()
+        }
+        to_create = {}
+        to_keep = {}
+        for reference in references:
+            assert reference.note == self
+            assert reference.target_note.notebook == self.notebook
+            if reference.target_note in to_delete:
+                del to_delete[reference.target_note]
+                to_keep[reference.target_note] = reference
+            elif reference.target_note in to_create or reference.target_note in to_keep:
+                pass
+            else:
+                to_create[reference.target_note] = reference
+        Reference.objects.bulk_create(to_create.values())
+        Reference.objects.filter(id__in=[reference.id for reference in to_delete.values()]).delete()
 
 
 class Alias(models.Model):
@@ -139,16 +178,10 @@ class Reference(models.Model):
         related_name='references',
         verbose_name=_('source note'),
     )
-    offset = models.PositiveIntegerField(
-        verbose_name=_('link offset'),
-    )
-    length = models.PositiveIntegerField(
-        verbose_name=_('link length'),
-    )
     target_note = models.ForeignKey(
         to=Note,
         on_delete=models.PROTECT,
-        related_name='referenced_by',
+        related_name='references_to',
         verbose_name=_('target note'),
     )
 
@@ -158,4 +191,4 @@ class Reference(models.Model):
         unique_together = (
             ('note', 'target_note'),
         )
-        ordering = ('note', 'offset')
+        ordering = ('note', 'target_note')

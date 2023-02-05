@@ -96,7 +96,7 @@ class Migration(migrations.Migration):
                     'target_note',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.PROTECT,
-                        related_name='referenced_by',
+                        related_name='references_to',
                         to='notes.note',
                         verbose_name='target note',
                     ),
@@ -105,7 +105,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'reference',
                 'verbose_name_plural': 'references',
-                'ordering': ('note', 'offset'),
+                'ordering': ('note', 'target_note'),
                 'unique_together': {('note', 'target_note')},
             },
         ),

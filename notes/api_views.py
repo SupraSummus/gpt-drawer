@@ -3,13 +3,13 @@ from django.db.models import Q
 from django.utils.translation import gettext as _
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Note, NoteBook
-from .serializers import NoteBookSerializer, NoteSerializer
+from .models import Note, Notebook
+from .serializers import NotebookSerializer, NoteSerializer
 
 
-class NoteBookViewSet(ModelViewSet):
-    queryset = NoteBook.objects.all()
-    serializer_class = NoteBookSerializer
+class NotebookViewSet(ModelViewSet):
+    queryset = Notebook.objects.all()
+    serializer_class = NotebookSerializer
 
     def get_queryset(self):
         return self.queryset.accessible_by_user(self.request.user)
@@ -22,7 +22,7 @@ class ModelChoiceAccessibleByUserFilter(django_filters.ModelChoiceFilter):
 
 class NoteFiterSet(django_filters.FilterSet):
     notebook_id = ModelChoiceAccessibleByUserFilter(
-        queryset=NoteBook.objects.all()
+        queryset=Notebook.objects.all()
     )
     search = django_filters.CharFilter(
         method='search_filter',

@@ -5,21 +5,20 @@ from django.views.generic import DetailView, ListView
 from . import models
 
 
-class NoteBookListView(LoginRequiredMixin, ListView):
+class NotebookListView(LoginRequiredMixin, ListView):
     template_name = 'notebooks.html'
     context_object_name = 'notebooks'
-    model = models.NoteBook
+    model = models.Notebook
 
     def get_queryset(self):
-        return super().get_queryset().filter(user_permissions__user=self.request.user)
+        return super().get_queryset().accessible_by_user(self.request.user)
 
 
-class NoteBookViewMixin:
+class NotebookViewMixin:
     def dispatch(self, request, *args, notebook_id, **kwargs):
         self.notebook = get_object_or_404(
-            models.NoteBook,
+            models.Notebook.objects.accessible_by_user(self.request.user),
             id=notebook_id,
-            user_permissions__user=self.request.user,
         )
         return super().dispatch(request, *args, **kwargs)
 
@@ -29,16 +28,16 @@ class NoteBookViewMixin:
         return context
 
 
-class NoteBookDetailView(LoginRequiredMixin, NoteBookViewMixin, DetailView):
+class NotebookDetailView(LoginRequiredMixin, NotebookViewMixin, DetailView):
     template_name = 'notebook.html'
 
     def get_object(self):
         return self.notebook
 
 
-class NoteDetailView(LoginRequiredMixin, NoteBookViewMixin, DetailView):
+class NoteDetailView(LoginRequiredMixin, NotebookViewMixin, DetailView):
     template_name = 'note.html'
     context_object_name = 'note'
 
     def get_queryset(self):
-        return self.notebook.notes.all()
+        return self.notebook.notes.accessible_by_user(self.request.user)

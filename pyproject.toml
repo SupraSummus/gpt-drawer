@@ -19,6 +19,9 @@ django-filter = "^22.1"
 flake8 = "^6.0.0"
 flake8-isort = "^6.0.0"
 flake8-pyproject = "^1.2.2"
+pytest-django = "^4.5.2"
+pytest-lazy-fixture = "^0.6.3"
+factory-boy = "^3.2.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -41,3 +44,9 @@ include_trailing_comma = true
 [tool.black]
 line-length = 119
 skip-string-normalization = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "gpt_drawer.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+FAIL_INVALID_TEMPLATE_VARS = true
+addopts = "--reuse-db"
