@@ -1,10 +1,11 @@
 import django_filters
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Note, Notebook
-from .serializers import NotebookSerializer, NoteSerializer
+from .serializers import AliasSerializer, NotebookSerializer, NoteSerializer, ReferenceSerializer
 
 
 class NotebookViewSet(ModelViewSet):
@@ -47,3 +48,34 @@ class NoteViewSet(ModelViewSet):
 
     def get_queryset(self):
         return self.queryset.accessible_by_user(self.request.user)
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        queryset = queryset.distinct()
+        return queryset
+
+
+class InNoteViewSetMixin:
+    def dispatch(self, request, *args, note_pk, **kwargs):
+        self.note = get_object_or_404(
+            Note.objects.accessible_by_user(self.request.user),
+            id=note_pk,
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save(note=self.note)
+
+
+class AliasViewSet(InNoteViewSetMixin, ModelViewSet):
+    serializer_class = AliasSerializer
+
+    def get_queryset(self):
+        return self.note.aliases
+
+
+class ReferenceViewSet(InNoteViewSetMixin, ModelViewSet):
+    serializer_class = ReferenceSerializer
+
+    def get_queryset(self):
+        return self.note.references

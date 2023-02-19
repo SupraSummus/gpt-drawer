@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_nested.relations import NestedHyperlinkedIdentityField
 
 from .models import Alias, Note, Notebook, Reference
 
@@ -39,15 +40,31 @@ class NoteShortSerializer(serializers.ModelSerializer):
 
 
 class AliasSerializer(serializers.ModelSerializer):
+    _detail_url = NestedHyperlinkedIdentityField(
+        view_name='api:note-alias-detail',
+        lookup_field='pk',
+        parent_lookup_kwargs={
+            'note_pk': 'note__pk',
+        },
+    )
+
     class Meta:
         model = Alias
         fields = (
+            '_detail_url',
             'id',
             'title',
         )
 
 
 class ReferenceSerializer(serializers.ModelSerializer):
+    _detail_url = NestedHyperlinkedIdentityField(
+        view_name='api:note-reference-detail',
+        lookup_field='pk',
+        parent_lookup_kwargs={
+            'note_pk': 'note__pk',
+        },
+    )
     target_note = NoteShortSerializer(read_only=True)
     target_note_id = PrimaryKeyRelatedAccessibleByUserField(
         queryset=Note.objects.all(),
@@ -58,6 +75,7 @@ class ReferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reference
         fields = (
+            '_detail_url',
             'id',
             'target_note',
             'target_note_id',
@@ -65,6 +83,16 @@ class ReferenceSerializer(serializers.ModelSerializer):
 
 
 class NoteSerializer(NoteShortSerializer):
+    _aliases_url = serializers.HyperlinkedIdentityField(
+        view_name='api:note-alias-list',
+        lookup_field='pk',
+        lookup_url_kwarg='note_pk',
+    )
+    _references_url = serializers.HyperlinkedIdentityField(
+        view_name='api:note-reference-list',
+        lookup_field='pk',
+        lookup_url_kwarg='note_pk',
+    )
     notebook_id = PrimaryKeyRelatedAccessibleByUserField(
         queryset=Notebook.objects.all(),
         source='notebook',
@@ -76,6 +104,8 @@ class NoteSerializer(NoteShortSerializer):
         model = Note
         fields = (
             *NoteShortSerializer.Meta.fields,
+            '_aliases_url',
+            '_references_url',
             'notebook_id',
             'content',
             'aliases',

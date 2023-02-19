@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from rest_framework import status
 
 from ..models import Alias, Note, Reference
 from .factories import AliasFactory, NotebookFactory, NotebookUserPermissionFactory, NoteFactory, ReferenceFactory
@@ -10,6 +11,38 @@ def user_notebook(user):
     notebook = NotebookFactory()
     NotebookUserPermissionFactory(notebook=notebook, user=user)
     return notebook
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('term,found', [
+    ('Moria', True),  # match in title
+    ('kha', True),  # match in alias
+    ('fiction', False),  # match in content
+    ('oria', False),  # match not at the beginning of a word
+    # TODO
+    # ('pit', True),  # match on second word
+])
+def test_note_search(user_client, user_notebook, term, found):
+    note = NoteFactory(
+        notebook=user_notebook,
+        title='Moria',
+        content='Moria is a fictional underground complex of caverns and mines in J.R.R Tolkien\'s Lord of the Rings.',
+    )
+    AliasFactory(note=note, title='Khazad-dûm')
+    AliasFactory(note=note, title='Black Pit')
+
+    response = user_client.get(
+        reverse('api:note-list'),
+        data={
+            'notebook_id': user_notebook.id,
+            'search': term,
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK, response.json()
+    note_ids = [note['id'] for note in response.data['results']]
+    assert len(note_ids) == len(set(note_ids)), 'Response should not contain duplicate notes'
+    assert (str(note.id) in note_ids) is found
 
 
 @pytest.mark.django_db
@@ -35,7 +68,7 @@ def test_note_create(user_client, user_notebook):
         },
         content_type='application/json',
     )
-    assert response.status_code == 201, response.content
+    assert response.status_code == status.HTTP_201_CREATED, response.content
 
     note = Note.objects.get(id=response.data['id'])
     assert note.title == 'Test note'
@@ -66,7 +99,7 @@ def test_note_create_reference_to_other_notebook(user, user_client, user_noteboo
         },
         content_type='application/json',
     )
-    assert response.status_code == 400, response.content
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
     assert 'same notebook' in response.data['references'][0].lower()
 
 
@@ -96,7 +129,7 @@ def test_note_update(user_client, user_notebook):
         },
         content_type='application/json',
     )
-    assert response.status_code == 200, response.content
+    assert response.status_code == status.HTTP_200_OK, response.content
 
     assert note.aliases.count() == 2
     assert set(note.aliases.values_list('title', flat=True)) == {alias_a.title, 'Test alias 2'}
@@ -129,5 +162,5 @@ def test_note_update_reference_to_other_notebook(user, user_client, user_noteboo
         },
         content_type='application/json',
     )
-    assert response.status_code == 400, response.content
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
     assert 'same notebook' in response.data['references'][0].lower()

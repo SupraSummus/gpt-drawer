@@ -1,10 +1,12 @@
 <script>
   import axios from 'axios'
 	import { createEventDispatcher, onMount } from 'svelte'
+  import Alias from './Alias.svelte'
 
   let id = null
   let title = ''
   let content = ''
+  let aliases = []
 
   let dispatch = createEventDispatcher()
   let state = 'fetching'
@@ -14,6 +16,7 @@
     console.assert(data.id === id)
     title = data.title
     content = data.content
+    aliases = data.aliases
     state = 'view'
   }
 
@@ -30,6 +33,18 @@
     state = 'fetching'
     const response = await axios.get(`/api/notes/${id}/`)
     load_from_response(response)
+  }
+
+  function add_alias() {
+    aliases.push({
+      id: null,
+      title: '',
+    })
+    aliases = aliases
+  }
+
+  function delete_alias(alias_id) {
+    aliases = aliases.filter(alias => alias.id !== alias_id)
   }
 
   onMount(() => {
@@ -70,6 +85,40 @@
     {:else}
       <h2 class="title">{title}</h2>
     {/if}
+
+    <details>
+      <summary>Aliases</summary>
+      <ul>
+        {#each aliases as alias (alias.id || '')}
+          <li>
+            {#if alias.id === null}
+              <Alias
+                note_id={id}
+                bind:title={alias.title}
+                bind:id={alias.id}
+                state='edit'
+                on:alias-deleted={() => delete_alias(alias.id)}
+              />
+            {:else}
+              <Alias
+                note_id={id}
+                bind:title={alias.title}
+                bind:id={alias.id}
+                on:alias-deleted={() => delete_alias(alias.id)}
+              />
+            {/if}
+          </li>
+        {/each}
+        {#if !aliases.some(alias => alias.id === null)}
+          <li>
+            <button on:click|preventDefault={() => add_alias()} class='outline'>
+              Add alias
+            </button>
+          </li>
+        {/if}
+      </ul>
+    </details>
+
   </header>
 
   {#if state === 'edit'}
