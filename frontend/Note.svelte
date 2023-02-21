@@ -61,23 +61,23 @@
     
     <div class="actions">
       {#if state === 'edit'}
-        <a href on:click|preventDefault={() => save_note()}>
+        <button on:click|preventDefault={() => save_note()} class='action-button outline'>
           Save
-        </a>
-        <a href on:click|preventDefault={() => fetch_note()}>
+        </button>
+        <button on:click|preventDefault={() => fetch_note()} class='action-button outline'>
           Cancel
-        </a>
+        </button>
       {:else if state === 'view'}
-        <a href on:click|preventDefault={() => {state = 'edit'}}>
+        <button on:click|preventDefault={() => {state = 'edit'}} class='action-button outline'>
           Edit
-        </a>
+        </button>
       {/if}
       
-      <a href class="close"
+      <button class='action-button outline'
         on:click|preventDefault={() => dispatch('close', id)}
       >
         Close
-      </a>
+      </button>
     </div>
 
     {#if state === 'edit'}
@@ -136,10 +136,16 @@
 
   .actions {
     float: right;
+    display: flex;
   }
 
   .title {
     margin: 0;
+  }
+
+  .action-button {
+    display: inline-block;
+    margin-left: 0.5em;
   }
 
   .content {

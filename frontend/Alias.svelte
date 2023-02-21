@@ -38,12 +38,12 @@
 <div class='alias-row'>
     {#if state === 'view'}
         <span>{title}</span>
-        <button on:click={() => state = 'edit'} class="outline row-end">Edit</button>
-        <button on:click={() => delete_alias()} class="outline">Delete</button>
+        <button on:click={() => state = 'edit'} class="action-button outline row-end">Edit</button>
+        <button on:click={() => delete_alias()} class="action-button outline">Delete</button>
     {:else if state === 'edit'}
         <input bind:value={title} />
-        <button on:click={() => save()} class="outline row-end">Save</button>
-        <button on:click={() => delete_alias()} class="outline">Delete</button>
+        <button on:click={() => save()} class="action-button outline row-end">Save</button>
+        <button on:click={() => delete_alias()} class="action-button outline">Delete</button>
     {:else if state === 'saving'}
         <span>{title}</span>
         <span aria-busy="true" class="row-end">Saving...</span>
@@ -59,11 +59,15 @@
         align-items: center;
     }
 
-    button, input {
+    .action-button, input {
         display: inline-block;
         width: auto;
         margin-bottom: auto;
         margin-top: auto;
+    }
+
+    .action-button {
+        margin-left: 0.5em;
     }
 
     .row-end {
