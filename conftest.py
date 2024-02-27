@@ -2,7 +2,10 @@ import pytest
 from django.test.client import Client
 
 
-pytest_plugins = "users.tests.fixtures"
+pytest_plugins = [
+    'users.tests.fixtures',
+    'notes.tests.fixtures',
+]
 
 
 @pytest.fixture

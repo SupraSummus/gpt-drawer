@@ -34,6 +34,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'notebook',
                 'verbose_name_plural': 'notebooks',
+                'ordering': ('title', 'id'),
             },
         ),
         migrations.CreateModel(

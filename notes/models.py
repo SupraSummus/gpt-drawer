@@ -30,6 +30,10 @@ class Notebook(models.Model):
     class Meta:
         verbose_name = _('notebook')
         verbose_name_plural = _('notebooks')
+        ordering = ('title', 'id')
+
+    def __str__(self):
+        return self.title
 
 
 class NotebookUserPermission(models.Model):
@@ -97,6 +101,9 @@ class Note(models.Model):
             ('notebook', 'title'),
         )
         ordering = ('notebook', 'title')
+
+    def __str__(self):
+        return self.title
 
     def set_aliases(self, aliases):
         to_delete = {
@@ -192,3 +199,16 @@ class Reference(models.Model):
             ('note', 'target_note'),
         )
         ordering = ('note', 'target_note')
+
+    def clean_fields(self, exclude=()):
+        super().clean_fields(exclude=exclude)
+
+        if (
+            'target_note' not in exclude and
+            self.note.notebook_id != self.target_note.notebook_id
+        ):
+            raise models.ValidationError({
+                'target_note': _(
+                    'The target note must be in the same notebook as the source note.'
+                ),
+            }, code='notebook_mismatch')
