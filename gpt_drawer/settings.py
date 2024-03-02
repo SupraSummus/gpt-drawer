@@ -47,7 +47,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'django_filters',
-
+    'django_q',
     'users.apps.UsersConfig',
     'notes.apps.NotesConfig',
 ]
@@ -148,4 +148,19 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+}
+
+# openai
+OPENAI_API_KEY = env.str('OPENAI_API_KEY', default='')
+
+# Django Q
+Q_CLUSTER = {
+    'orm': 'default',
+
+    # task is killed when no result in set time
+    'timeout': 60,
+    # task is tried again when there is no result in set time
+    'retry': 120,
+    'workers': env.int('DJANGO_Q_WORKERS', default=2),
+    'catch_up': False,
 }

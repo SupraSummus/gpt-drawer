@@ -3,9 +3,16 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from pgvector.django import VectorField
+
+from .openai import openai_client
 
 
 User = get_user_model()
+
+
+def schedulable(func):
+    return func
 
 
 class NotebookQuerySet(models.QuerySet):
@@ -92,6 +99,15 @@ class Note(models.Model):
         blank=True,
     )
 
+    referenced_notes = models.ManyToManyField(
+        to='self',
+        through='Reference',
+        symmetrical=False,
+        through_fields=('note', 'target_note'),
+        related_name='referencing_notes',
+        verbose_name=_('referenced notes'),
+    )
+
     objects = NoteQuerySet.as_manager()
 
     class Meta:
@@ -172,6 +188,14 @@ class Alias(models.Model):
         ordering = ('note', 'title')
 
 
+class ReferenceState(models.TextChoices):
+    # Question was automatically genenerated but we are waiting for the uniqueness check
+    CHECKING_UNIQUENESS = 'checking_uniqueness', _('Checking uniqueness')
+    # Question was automatically genenerated and uniqueness check passed
+    # or the question was manually added or modified
+    ACTIVE = 'active', _('Active')
+
+
 class Reference(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -185,9 +209,27 @@ class Reference(models.Model):
         related_name='references',
         verbose_name=_('source note'),
     )
+    state = models.CharField(
+        max_length=20,
+        choices=ReferenceState.choices,
+        default=ReferenceState.ACTIVE,
+        verbose_name=_('state'),
+    )
+    question = models.TextField(
+        verbose_name=_('question'),
+        blank=True,
+    )
+    embedding = VectorField(
+        dimensions=3072,
+        verbose_name=_('embedding'),
+        null=True,
+        blank=True,
+    )
     target_note = models.ForeignKey(
         to=Note,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='references_to',
         verbose_name=_('target note'),
     )
@@ -205,10 +247,20 @@ class Reference(models.Model):
 
         if (
             'target_note' not in exclude and
-            self.note.notebook_id != self.target_note.notebook_id
+            self.target_note is not None and
+            self.target_note.notebook_id != self.note.notebook_id
         ):
             raise models.ValidationError({
                 'target_note': _(
                     'The target note must be in the same notebook as the source note.'
                 ),
             }, code='notebook_mismatch')
+
+    def generate_embedding(self):
+        response = openai_client.embeddings.create(
+            input=self.question,
+            model='text-embedding-3-large',
+        )
+        embedding = response.data[0].embedding
+        assert len(embedding) == 3072
+        self.embedding = embedding

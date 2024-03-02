@@ -21,6 +21,8 @@ class ReferenceInline(admin.TabularInline):
     model = Reference
     fk_name = 'note'
     extra = 0
+    fields = ('state', 'question', 'target_note')
+    readonly_fields = ('state',)
     autocomplete_fields = ('target_note',)
 
 
