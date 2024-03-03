@@ -10,13 +10,13 @@
   {% else %}
     No note selected
   {% endif %}
-  <a href="#" unicorn:click="dialog = True">Change</a>
+  <a href="#" unicorn:click.prevent="dialog = True">Change</a>
 
   {% if dialog %}
     <dialog open style="align-items: stretch;">
       <article>
         <header>
-          <button aria-label="Close" rel="prev" unicorn:click="dialog = False"></button>
+          <button aria-label="Close" rel="prev" unicorn:click.prevent="dialog = False"></button>
           <p>
             <strong>Select a note</strong>
           </p>
@@ -30,7 +30,7 @@
         <ul>
           {% for note in notes %}
             <li>
-              <a href="#" unicorn:click="select_note('{{ note.id }}')">{{ note.title }}</a>
+              <a href="#" unicorn:click.prevent="select_note('{{ note.id }}')">{{ note.title }}</a>
             </li>
           {% endfor %}
         </ul>

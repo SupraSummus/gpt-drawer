@@ -1,0 +1,13 @@
+{% load unicorn %}
+
+<div>
+  <h1>{{ note.title }}</h1>
+  {% unicorn 'editable_text' text=note.content %}
+
+  <h2>QA</h2>
+  <dl>
+    {% for reference in note.references.all %}
+      {% unicorn 'note_reference' note_reference=reference key=reference.id notebook=note.notebook %}
+    {% endfor %}
+  </dl>
+</div>

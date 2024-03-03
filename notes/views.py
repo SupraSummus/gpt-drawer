@@ -46,9 +46,9 @@ class NoteDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'note'
 
     def get_queryset(self):
-        return Note.objects.accessible_by_user(self.request.user)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['references'] = self.object.references.select_related('target_note')
-        return context
+        return Note.objects.accessible_by_user(self.request.user).select_related(
+            'notebook',
+        ).prefetch_related(
+            'references',
+            'references__target_note',
+        )

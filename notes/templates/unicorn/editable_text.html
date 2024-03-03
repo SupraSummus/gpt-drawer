@@ -1,9 +1,15 @@
 <div>
   {% if editing %}
-    <input type="text" unicorn:model.defer="text" />
-    <button unicorn:click="save">Save</button>
+    <form unicorn:submit.prevent="save" unicorn:reset.discard="editing = False">
+      <textarea unicorn:model.defer="text"></textarea>
+      <div class="grid">
+        <input type="submit" value="Save">
+        <input type="reset" value="Cancel">
+      </div>
+    </form>
   {% else %}
-    {{ text }}
-    <a href="#" unicorn:click="editing = True">Change</a>
+    <p style="white-space: pre-line;">{{ text }}
+      <a href="#" unicorn:click.prevent="editing = True">Change</a>
+    </p>
   {% endif %}
 </div>
