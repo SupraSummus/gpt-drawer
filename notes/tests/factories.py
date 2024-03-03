@@ -32,3 +32,6 @@ class ReferenceFactory(factory.django.DjangoModelFactory):
         model = Reference
 
     target_note = factory.SubFactory(NoteFactory)
+
+
+NoteReferenceFactory = ReferenceFactory

@@ -1,5 +1,5 @@
-from django_unicorn.components import UnicornView
 from django.shortcuts import get_object_or_404
+from django_unicorn.components import UnicornView
 
 from ..models import Note
 
@@ -34,16 +34,19 @@ class NoteSelectView(UnicornView):
             self.note = None
         else:
             self.note = get_object_or_404(
-                Note,
+                self._get_queryset(),
                 id=note_id,
-                notebook=self.notebook,
             )
         self.dialog = False
         self.query = ''
         self.parent._note_selected(self.note)
 
     def _do_search(self):
-        self.notes = list(Note.objects.filter(
-            notebook=self.notebook,
+        self.notes = list(self._get_queryset().filter(
             title__icontains=self.query,
         )[:10].values('id', 'title'))
+
+    def _get_queryset(self):
+        return Note.objects.filter(
+            notebook=self.notebook,
+        )

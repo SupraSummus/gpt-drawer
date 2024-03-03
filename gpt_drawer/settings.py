@@ -165,3 +165,12 @@ Q_CLUSTER = {
     'workers': env.int('DJANGO_Q_WORKERS', default=2),
     'catch_up': False,
 }
+
+# django debug toolbar
+DEBUG_TOOLBAR_ENABLED = DEBUG
+if DEBUG_TOOLBAR_ENABLED:
+    INSTALLED_APPS.append('debug_toolbar')
+    MIDDLEWARE.insert(0, 'debug_toolbar.middleware.DebugToolbarMiddleware')
+    INTERNAL_IPS = [
+        '127.0.0.1',
+    ]
