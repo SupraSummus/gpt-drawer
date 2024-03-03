@@ -1,0 +1,10 @@
+<div hx-target="this" hx-swap="outerHTML">
+  <h1>{{ note.title }}</h1>
+  <p style="white-space: pre-line;">{{ note.content }}</p>
+  <aside>
+    <a href="#"
+      hx-get="{% url 'note-edit' note.id %}"
+      hx-trigger="click"
+    >Edit</a>
+  </aside>
+</div>

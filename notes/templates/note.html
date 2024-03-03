@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load unicorn %}
 
 {% block title %}
   {{ note.title }}
@@ -7,6 +6,19 @@
 
 {% block content %}
   <main class="container">
-    {% unicorn 'note' note=note %}
+
+    <section>
+      {% include 'components/note.html' with note=note %}
+    </section>
+
+    <section>
+      <h2>QA</h2>
+      <dl>
+        {% for reference in note.references.all %}
+          {% include 'components/note_reference.html' with note_reference=reference notebook=note.notebook %}
+        {% endfor %}
+      </dl>
+    </section>
+
   </main>
 {% endblock %}

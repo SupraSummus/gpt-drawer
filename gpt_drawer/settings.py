@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'django_q',
-    'django_unicorn',
+    'django_htmx',
     'users.apps.UsersConfig',
     'notes.apps.NotesConfig',
 ]
@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 ]
 
 ROOT_URLCONF = 'gpt_drawer.urls'

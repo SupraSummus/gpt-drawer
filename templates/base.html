@@ -1,5 +1,5 @@
 {% load static %}
-{% load unicorn %}
+{% load django_htmx %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -12,11 +12,16 @@
         <link
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+            crossorigin="anonymous"
         />
-        {% unicorn_scripts %}
+        <script
+            src="https://unpkg.com/htmx.org@1.9.10"
+            integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
+            crossorigin="anonymous"
+        ></script>
+        {% django_htmx_script %}
     </head>
-    <body>
-        {% csrf_token %}
+    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
         <header class="container main-header">
             <nav>

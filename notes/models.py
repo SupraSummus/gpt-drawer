@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
 
@@ -120,6 +121,9 @@ class Note(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('note-detail', kwargs={'pk': self.id})
 
     def set_aliases(self, aliases):
         to_delete = {
@@ -248,6 +252,9 @@ class Reference(models.Model):
             ('note', 'target_note'),
         )
         ordering = ('note', 'target_note')
+
+    def get_absolute_url(self):
+        return reverse('note-reference', kwargs={'pk': self.id})
 
     def clean_fields(self, exclude=()):
         super().clean_fields(exclude=exclude)
