@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load unicorn %}
+
+{% block title %}
+  {{ note.title }}
+{% endblock %}
+
+{% block content %}
+  <main class="container">
+    <h1>{{ note.title }}</h1>
+    <p style="white-space: pre-line;">{{ note.content }}</p>
+
+    <h2>QA</h2>
+    <dl>
+      {% for reference in references %}
+        {% unicorn 'note_reference' note_reference=reference key=reference.id notebook=note.notebook %}
+      {% endfor %}
+    </dl>
+  </main>
+{% endblock %}

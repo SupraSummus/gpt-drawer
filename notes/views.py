@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView
 
 from . import models
+from .models import Note
 
 
 class NotebookListView(LoginRequiredMixin, ListView):
@@ -34,10 +35,20 @@ class NotebookDetailView(LoginRequiredMixin, NotebookViewMixin, DetailView):
     def get_object(self):
         return self.notebook
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['notes'] = self.notebook.notes.all()
+        return context
 
-class NoteDetailView(LoginRequiredMixin, NotebookViewMixin, DetailView):
+
+class NoteDetailView(LoginRequiredMixin, DetailView):
     template_name = 'note.html'
     context_object_name = 'note'
 
     def get_queryset(self):
-        return self.notebook.notes.accessible_by_user(self.request.user)
+        return Note.objects.accessible_by_user(self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['references'] = self.object.references.select_related('target_note')
+        return context

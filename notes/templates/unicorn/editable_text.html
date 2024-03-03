@@ -1,0 +1,9 @@
+<div>
+  {% if editing %}
+    <input type="text" unicorn:model.defer="text" />
+    <button unicorn:click="save">Save</button>
+  {% else %}
+    {{ text }}
+    <a href="#" unicorn:click="editing = True">Change</a>
+  {% endif %}
+</div>

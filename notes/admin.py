@@ -1,4 +1,7 @@
+from urllib.parse import urlparse
+
 from django.contrib import admin
+from django.urls import resolve
 
 from admin_utils import get_autocomplete_object_id
 
@@ -43,3 +46,18 @@ class NoteAdmin(admin.ModelAdmin):
         if note_id := get_autocomplete_object_id(request, Reference, 'target_note'):
             queryset = Note.objects.filter(notebook__notes__id=note_id)
         return super().get_search_results(request, queryset, search_term)
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+
+        referer = request.META.get('HTTP_REFERER')
+        referer_path = urlparse(referer).path
+        referer_match = resolve(referer_path)
+
+        # get the note id this was created from
+        if referer_match.view_name == 'admin:notes_note_change':
+            object_id = referer_match.kwargs.get('object_id')
+            note = Note.objects.get(id=object_id)
+            initial['notebook'] = note.notebook_id
+
+        return initial

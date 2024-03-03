@@ -3,13 +3,22 @@
 {% load i18n %}
 
 {% block title %}
-    {{ notebook.title }}
+  {{ notebook.title }}
 {% endblock %}
 
 {% block content %}
-    <main
-        class="container notebook"
-        data-id="{{ notebook.id }}"
-        data-title="{{ notebook.title }}"
-    ></main>
+  <main class="container">
+    <h1>{{ notebook.title }}</h1>
+    {% for note in notes %}
+      <article>
+        <h2>{{ note.title }}</h2>
+        <p style="white-space: pre-line;">{{ note.content|truncatechars:200 }}</p>
+        <p>
+          <a href="{% url 'note-detail' note.id %}">
+            See more
+          </a>
+        </p>
+      </article>
+    {% endfor %}
+  </main>
 {% endblock %}

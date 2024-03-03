@@ -1,0 +1,14 @@
+{% load unicorn %}
+
+<div>
+  
+  <dt>
+    {% unicorn 'editable_text' text=note_reference.question %}
+  </dt>
+
+  <dd>
+    Answer:
+    {% unicorn 'note_select' notebook=notebook note=note_reference.target_note %}
+  </dd>
+
+</div>

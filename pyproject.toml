@@ -18,6 +18,7 @@ drf-nested-routers = "^0.93.4"
 openai = "^1.13.3"
 pgvector = "^0.2.5"
 django-q2 = "^1.6.1"
+django-unicorn = "^0.60.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.0.0"

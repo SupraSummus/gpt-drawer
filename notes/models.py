@@ -196,6 +196,11 @@ class ReferenceState(models.TextChoices):
     ACTIVE = 'active', _('Active')
 
 
+class ReferenceQuerySet(models.QuerySet):
+    def accessible_by_user(self, user):
+        return self.filter(note__notebook__user_permissions__user=user)
+
+
 class Reference(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -234,6 +239,8 @@ class Reference(models.Model):
         verbose_name=_('target note'),
     )
 
+    objects = ReferenceQuerySet.as_manager()
+
     class Meta:
         verbose_name = _('reference')
         verbose_name_plural = _('references')
@@ -246,6 +253,7 @@ class Reference(models.Model):
         super().clean_fields(exclude=exclude)
 
         if (
+            'note' not in exclude and
             'target_note' not in exclude and
             self.target_note is not None and
             self.target_note.notebook_id != self.note.notebook_id
@@ -264,3 +272,6 @@ class Reference(models.Model):
         embedding = response.data[0].embedding
         assert len(embedding) == 3072
         self.embedding = embedding
+
+
+NoteReference = Reference

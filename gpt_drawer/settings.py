@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'django_q',
+    'django_unicorn',
     'users.apps.UsersConfig',
     'notes.apps.NotesConfig',
 ]
