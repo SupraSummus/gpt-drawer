@@ -1,4 +1,5 @@
 from django_unicorn.components import UnicornView
+from django.shortcuts import get_object_or_404
 
 from ..models import Note
 
@@ -22,22 +23,26 @@ class NoteSelectView(UnicornView):
 
     def updated_dialog(self, dialog):
         if dialog:
-            self.do_search()
+            self._do_search()
             self.call('focus_search')
 
     def updated_query(self, query):
-        self.do_search()
+        self._do_search()
 
     def select_note(self, note_id):
-        self.note = Note.objects.get(
-            id=note_id,
-            notebook=self.notebook,
-        )
+        if note_id is None:
+            self.note = None
+        else:
+            self.note = get_object_or_404(
+                Note,
+                id=note_id,
+                notebook=self.notebook,
+            )
         self.dialog = False
         self.query = ''
-        self.parent.note_selected(self.note)
+        self.parent._note_selected(self.note)
 
-    def do_search(self):
+    def _do_search(self):
         self.notes = list(Note.objects.filter(
             notebook=self.notebook,
             title__icontains=self.query,

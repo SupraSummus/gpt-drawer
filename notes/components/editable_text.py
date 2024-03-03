@@ -10,4 +10,4 @@ class EditableTextView(UnicornView):
 
     def save(self):
         self.editing = False
-        self.parent.text_updated(self.text)
+        self.parent._text_updated(self.text)

@@ -15,10 +15,10 @@ class NoteReferenceView(UnicornView):
         self.notebook = self.component_kwargs['notebook']
         self.note_reference = self.component_kwargs['note_reference']
 
-    def note_selected(self, note):
+    def _note_selected(self, note):
         self.note_reference.target_note = note
         self.note_reference.save(update_fields=['target_note'])
 
-    def text_updated(self, text):
+    def _text_updated(self, text):
         self.note_reference.question = text
         self.note_reference.save(update_fields=['question'])

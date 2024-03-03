@@ -10,6 +10,6 @@ class NoteView(UnicornView):
     def mount(self):
         self.note = self.component_kwargs['note']
 
-    def text_updated(self, text):
+    def _text_updated(self, text):
         self.note.content = text
         self.note.save(update_fields=['content'])
