@@ -1,0 +1,11 @@
+<form
+  hx-post="{% url 'note-reference-create' note.id %}"
+  hx-target="this" hx-swap="outerHTML"
+>
+  {% csrf_token %}
+  {{ form.as_div }}
+  <div class="grid">
+    <button type="submit">Save</button>
+    <button type="reset" hx-on:click="this.closest('form').remove()">Cancel</button>
+  </div>
+</form>

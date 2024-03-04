@@ -123,7 +123,7 @@ class Note(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('note-detail', kwargs={'pk': self.id})
+        return reverse('note-detail', kwargs={'note_id': self.id})
 
     def set_aliases(self, aliases):
         to_delete = {
@@ -254,7 +254,7 @@ class Reference(models.Model):
         ordering = ('note', 'target_note')
 
     def get_absolute_url(self):
-        return reverse('note-reference', kwargs={'pk': self.id})
+        return reverse('note-reference', kwargs={'note_reference_id': self.id})
 
     def clean_fields(self, exclude=()):
         super().clean_fields(exclude=exclude)

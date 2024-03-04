@@ -2,8 +2,10 @@ from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.views import View
 from django.views.generic import DetailView, ListView
-from django.views.generic.edit import UpdateView
+from django.views.generic.base import ContextMixin, TemplateResponseMixin
+from django.views.generic.edit import CreateView, UpdateView
 
 from . import models
 from .models import Note, NoteReference
@@ -46,14 +48,26 @@ class NotebookDetailView(LoginRequiredMixin, NotebookViewMixin, DetailView):
 
 # ### Notes ###
 
-class NoteViewMixin(LoginRequiredMixin):
-    context_object_name = 'note'
+class NoteViewMixin(LoginRequiredMixin, ContextMixin):
+    def dispatch(self, request, *args, note_id, **kwargs):
+        self.note = get_object_or_404(
+            Note.objects.accessible_by_user(self.request.user),
+            id=note_id,
+        )
+        return super().dispatch(request, *args, **kwargs)
 
-    def get_queryset(self):
-        return Note.objects.accessible_by_user(self.request.user)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['note'] = self.note
+        return context
 
 
-class NoteDetailView(NoteViewMixin, DetailView):
+class GETMixin(ContextMixin, TemplateResponseMixin):
+    def get(self, request, *args, **kwargs):
+        return self.render_to_response(self.get_context_data())
+
+
+class NoteDetailView(NoteViewMixin, GETMixin, View):
     def get_template_names(self):
         if self.request.htmx:
             template_name = 'components/note.html'
@@ -61,13 +75,9 @@ class NoteDetailView(NoteViewMixin, DetailView):
             template_name = 'note.html'
         return [template_name]
 
-    def get_queryset(self):
-        return super().get_queryset().select_related(
-            'notebook',
-        ).prefetch_related(
-            'references',
-            'references__target_note',
-        )
+    def delete(self, request, *args, **kwargs):
+        self.note.delete()
+        return HttpResponse(status=200, content='')
 
 
 class NoteForm(forms.ModelForm):
@@ -80,22 +90,32 @@ class NoteEditView(NoteViewMixin, UpdateView):
     template_name = 'components/note_edit.html'
     form_class = NoteForm
 
+    def get_object(self):
+        return self.note
+
 
 # ### Note references ###
 
 
-class NoteReferenceViewMixin(LoginRequiredMixin):
-    context_object_name = 'note_reference'
+class NoteReferenceViewMixin(LoginRequiredMixin, TemplateResponseMixin):
+    def dispatch(self, request, *args, note_reference_id, **kwargs):
+        self.note_reference = get_object_or_404(
+            NoteReference.objects.accessible_by_user(self.request.user),
+            id=note_reference_id,
+        )
+        return super().dispatch(request, *args, **kwargs)
 
-    def get_queryset(self):
-        return NoteReference.objects.accessible_by_user(self.request.user)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['note_reference'] = self.note_reference
+        return context
 
 
-class NoteReferenceView(NoteReferenceViewMixin, DetailView):
+class NoteReferenceView(NoteReferenceViewMixin, GETMixin, View):
     template_name = 'components/note_reference.html'
 
     def delete(self, request, *args, **kwargs):
-        self.get_object().delete()
+        self.note_reference.delete()
         return HttpResponse(status=200, content='')
 
 
@@ -106,10 +126,11 @@ class NoteReferenceForm(forms.ModelForm):
 
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)
+        notebook_id = self.instance.note.notebook_id
         self.fields['target_note'].queryset = Note.objects.accessible_by_user(
             user,
         ).filter(
-            notebook_id=self.instance.note.notebook_id,
+            notebook_id=notebook_id,
         )
 
 
@@ -117,10 +138,22 @@ class NoteReferenceEditView(NoteReferenceViewMixin, UpdateView):
     template_name = 'components/note_reference_edit.html'
     form_class = NoteReferenceForm
 
-    def get_queryset(self):
-        return NoteReference.objects.accessible_by_user(self.request.user)
+    def get_object(self):
+        return self.note_reference
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user
+        return kwargs
+
+
+class NoteReferenceCreateView(NoteViewMixin, CreateView):
+    model = NoteReference
+    form_class = NoteReferenceForm
+    template_name = 'components/note_reference_create.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        kwargs['instance'] = NoteReference(note=self.note)
         return kwargs

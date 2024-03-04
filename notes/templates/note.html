@@ -17,6 +17,12 @@
         {% for reference in note.references.all %}
           {% include 'components/note_reference.html' with note_reference=reference notebook=note.notebook %}
         {% endfor %}
+        <p hx-target="this" hx-swap="beforebegin">
+          <a href="#"
+            hx-get="{% url 'note-reference-create' note.id %}"
+            hx-trigger="click"
+          >Add QA entry</a>
+        </p>
       </dl>
     </section>
 
