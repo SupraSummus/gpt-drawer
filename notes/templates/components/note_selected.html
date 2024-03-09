@@ -1,0 +1,9 @@
+<div
+  role="group"
+  hx-get="{% url 'note-select' notebook_id %}?field_name={{ field_name }}"
+  hx-trigger="click"
+>
+  <input type="hidden" name="{{ field_name }}"{% if note %} value="{{ note.id }}"{% endif %}>
+  <input type="text" value="{% if note %}{{ note }}{% endif %}" readonly>
+  <input type="button" value="Change">
+</div>

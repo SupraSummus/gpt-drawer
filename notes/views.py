@@ -3,12 +3,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views import View
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView, ListView, TemplateView
 from django.views.generic.base import ContextMixin, TemplateResponseMixin
 from django.views.generic.edit import CreateView, UpdateView
 
 from . import models
 from .models import Note, NoteReference
+from .widgets import NoteChoiceWidget
 
 
 class NotebookListView(LoginRequiredMixin, ListView):
@@ -20,7 +21,7 @@ class NotebookListView(LoginRequiredMixin, ListView):
         return super().get_queryset().accessible_by_user(self.request.user)
 
 
-class NotebookViewMixin:
+class NotebookViewMixin(LoginRequiredMixin, ContextMixin):
     def dispatch(self, request, *args, notebook_id, **kwargs):
         self.notebook = get_object_or_404(
             models.Notebook.objects.accessible_by_user(self.request.user),
@@ -31,10 +32,11 @@ class NotebookViewMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['notebook'] = self.notebook
+        context['notebook_id'] = self.notebook.id
         return context
 
 
-class NotebookDetailView(LoginRequiredMixin, NotebookViewMixin, DetailView):
+class NotebookDetailView(NotebookViewMixin, DetailView):
     template_name = 'notebook.html'
 
     def get_object(self):
@@ -43,6 +45,39 @@ class NotebookDetailView(LoginRequiredMixin, NotebookViewMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['notes'] = self.notebook.notes.all()
+        return context
+
+
+class NoteSelectView(NotebookViewMixin, TemplateView):
+    """Return an element where user can select a note to use in a form."""
+    template_name = 'components/note_select.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['field_name'] = self.request.GET.get('field_name')
+        context['notes'] = self.notebook.notes.all()[0:10]
+        return context
+
+
+class NoteSearchView(NotebookViewMixin, TemplateView):
+    """Return matching notes. User can select one to use in a form."""
+    template_name = 'components/note_search.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['field_name'] = self.request.GET.get('field_name')
+        context['notes'] = self.notebook.notes.search(self.request.GET.get('q'))[0:10]
+        return context
+
+
+class NoteSelectedView(NotebookViewMixin, TemplateView):
+    """Return element representing selected note for use in a form."""
+    template_name = 'components/note_selected.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['field_name'] = self.request.GET.get('field_name')
+        context['note'] = self.notebook.notes.filter(id=self.request.GET.get('note_id')).first()
         return context
 
 
@@ -120,6 +155,11 @@ class NoteReferenceView(NoteReferenceViewMixin, GETMixin, View):
 
 
 class NoteReferenceForm(forms.ModelForm):
+    target_note = forms.ModelChoiceField(
+        queryset=Note.objects.none(),
+        required=False,
+    )
+
     class Meta:
         model = NoteReference
         fields = ('question', 'target_note')
@@ -130,6 +170,9 @@ class NoteReferenceForm(forms.ModelForm):
         self.fields['target_note'].queryset = Note.objects.accessible_by_user(
             user,
         ).filter(
+            notebook_id=notebook_id,
+        )
+        self.fields['target_note'].widget = NoteChoiceWidget(
             notebook_id=notebook_id,
         )
 

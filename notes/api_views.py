@@ -1,5 +1,4 @@
 import django_filters
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from rest_framework.viewsets import ModelViewSet
@@ -35,10 +34,7 @@ class NoteFiterSet(django_filters.FilterSet):
         fields = ()
 
     def search_filter(self, queryset, name, value):
-        return queryset.filter(
-            Q(title__istartswith=value) |
-            Q(aliases__title__istartswith=value)
-        )
+        return queryset.search(value)
 
 
 class NoteViewSet(ModelViewSet):

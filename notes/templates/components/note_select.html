@@ -1,0 +1,33 @@
+<dialog open style="align-items: stretch;">
+  <article>
+    <header>
+      <button aria-label="Close" rel="prev"></button>
+      <p>
+        <strong>Select a note</strong>
+        &mdash;
+        <a href="#">Clear</a>
+      </p>
+    </header>
+    <form
+      hx-trigger="submit"
+      hx-post="{% url 'note-select' notebook_id %}?field_name={{ field_name }}"
+      hx-target="#note-select-results"
+      hx-swap="innerHTML"
+    >
+      <input
+        type="search"
+        placeholder="Search"
+        aria-label="Search"
+        name="q"
+        hx-trigger="input changed delay:500ms"
+        hx-get="{% url 'note-search' notebook_id %}?field_name={{ field_name }}"
+        hx-target="#note-search-results"
+        hx-swap="innerHTML"
+        onsubmit="return false"
+      />
+    </form>
+    <ul id="note-search-results">
+      {% include 'components/note_search.html' %}
+    </ul>
+  </article>
+</dialog>

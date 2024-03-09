@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
@@ -76,6 +77,12 @@ class NotebookUserPermission(models.Model):
 class NoteQuerySet(models.QuerySet):
     def accessible_by_user(self, user):
         return self.filter(notebook__user_permissions__user=user)
+
+    def search(self, query):
+        return self.filter(
+            Q(title__istartswith=query) |
+            Q(aliases__title__istartswith=query)
+        )
 
 
 class Note(models.Model):
