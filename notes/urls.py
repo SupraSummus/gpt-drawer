@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     path('notebooks/', views.NotebookListView.as_view(), name='notebook-list'),
     path('notebook/<uuid:notebook_id>/', views.NotebookDetailView.as_view(), name='notebook-detail'),
+    path('notebook/<uuid:notebook_id>/ask-me/', views.NotebookAskMeView.as_view(), name='notebook-ask-me'),
     path('notebook/<uuid:notebook_id>/note-select/', views.NoteSelectView.as_view(), name='note-select'),
     path('notebook/<uuid:notebook_id>/note-search/', views.NoteSearchView.as_view(), name='note-search'),
     path('notebook/<uuid:notebook_id>/note-selected/', views.NoteSelectedView.as_view(), name='note-selected'),

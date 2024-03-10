@@ -49,6 +49,19 @@ class NotebookDetailView(NotebookViewMixin, DetailView):
         return context
 
 
+class NotebookAskMeView(NotebookViewMixin, TemplateView):
+    template_name = 'components/notebook_ask_me.html'
+
+    def get(self, request, *args, **kwargs):
+        unanswered_question = NoteReference.objects.filter(
+            note__notebook=self.notebook,
+            target_note__isnull=True,
+        ).order_by('?').first()
+        if unanswered_question:
+            return redirect(unanswered_question)
+        return super().get(request, *args, **kwargs)
+
+
 class NoteSelectView(NotebookViewMixin, TemplateView):
     """Return an element where user can select a note to use in a form."""
     template_name = 'components/note_select.html'
@@ -56,6 +69,7 @@ class NoteSelectView(NotebookViewMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['field_name'] = self.request.GET.get('field_name')
+        context['note_id'] = self.request.GET.get('note_id', '')
         context['notes'] = self.notebook.notes.all()[0:10]
         return context
 
@@ -78,7 +92,11 @@ class NoteSelectedView(NotebookViewMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['field_name'] = self.request.GET.get('field_name')
-        context['note'] = self.notebook.notes.filter(id=self.request.GET.get('note_id')).first()
+        note_id_str = self.request.GET.get('note_id', '')
+        if not note_id_str:
+            context['note'] = None
+        else:
+            context['note'] = self.notebook.notes.filter(id=note_id_str).first()
         return context
 
 
@@ -148,7 +166,12 @@ class NoteReferenceViewMixin(LoginRequiredMixin, TemplateResponseMixin):
 
 
 class NoteReferenceView(NoteReferenceViewMixin, GETMixin, View):
-    template_name = 'components/note_reference.html'
+    def get_template_names(self):
+        if self.request.htmx:
+            template_name = 'components/note_reference.html'
+        else:
+            template_name = 'note_reference.html'
+        return [template_name]
 
     def delete(self, request, *args, **kwargs):
         self.note_reference.delete()

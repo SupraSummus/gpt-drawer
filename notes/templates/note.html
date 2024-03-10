@@ -14,8 +14,8 @@
     <section>
       <h2>QA</h2>
       <dl>
-        {% for reference in note.references.all %}
-          {% include 'components/note_reference.html' with note_reference=reference notebook=note.notebook %}
+        {% for note_reference in note.references.all %}
+          {% include 'components/note_reference.html' %}
         {% endfor %}
         <p hx-target="this" hx-swap="beforebegin">
           <button class="outline"
