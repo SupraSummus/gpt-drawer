@@ -7,7 +7,6 @@ from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
 from django.views.generic.base import ContextMixin, TemplateResponseMixin
 from django.views.generic.edit import CreateView, FormView, UpdateView
-from django_q.tasks import async_task
 
 from . import models
 from .models import Note, NoteReference
@@ -219,10 +218,6 @@ class NoteReferenceAnswerView(NoteReferenceViewMixin, FormView):
         note = Note.objects.create(
             notebook=self.note_reference.note.notebook,
             content=form.cleaned_data['answer'],
-        )
-        async_task(
-            'notes.tasks.generate_note_title',
-            note_id=note.id,
         )
         self.note_reference.target_note = note
         self.note_reference.save(update_fields=('target_note',))

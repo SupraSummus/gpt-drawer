@@ -11,7 +11,7 @@
     <h1>{{ notebook.title }}</h1>
     {% for note in notes %}
       <article>
-        <h2>{{ note.title }}</h2>
+        <h2>{{ note }}</h2>
         <p style="white-space: pre-line;">{{ note.content|truncatechars:200 }}</p>
         <p>
           <a href="{% url 'note-detail' note.id %}">

@@ -2,9 +2,10 @@
   <h1>{{ note }}</h1>
   <p style="white-space: pre-line;">{{ note.content }}</p>
   <aside>
-    <a href="#"
+    <button
       hx-get="{% url 'note-edit' note.id %}"
       hx-trigger="click"
-    >Edit</a>
+      class="outline"
+    >Edit</button>
   </aside>
 </div>

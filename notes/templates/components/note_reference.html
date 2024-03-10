@@ -5,33 +5,38 @@
   </dt>
 
   <dd>
-    <p>
-      {% if note_reference.target_note %}
-       Answer:
-       <a href="{% url 'note-detail' note_reference.target_note.id %}">{{ note_reference.target_note }}</a>
-      {% else %}
+    {% if note_reference.target_note %}
+      <p>
+        <a href="{% url 'note-detail' note_reference.target_note.id %}">{{ note_reference.target_note }}</a>
+      </p>
+      <p>{{ note_reference.target_note.content|truncatechars:200 }}</p>
+    {% else %}
+      <p>
         No answer yet
-        &ndash;
-        <a href="#"
+        <button
           hx-get="{% url 'note-reference-answer' note_reference.id %}"
           hx-trigger="click"
-        >Answer in new note</a>
-        &ndash;
-        <a href="#">Select existing note</a>
-      {% endif %}
-    </p>
+          class="outline"
+        >Answer in new note</button>
+        <button
+          class="outline"
+        >Select existing note</button>
+      </p>
+    {% endif %}
+
   </dd>
 
   <aside>
-    <a href="#"
+    <button
       hx-get="{% url 'note-reference-edit' note_reference.id %}"
       hx-trigger="click"
-    >Edit</a>
-    &ndash;
-    <a href="#"
+      class="outline"
+    >Edit</button>
+    <button
       hx-delete="{% url 'note-reference' note_reference.id %}"
       hx-confirm="Are you sure?"
-    >Delete</a>
+      class="outline"
+    >Delete</button>
   </aside>
 
   <hr>

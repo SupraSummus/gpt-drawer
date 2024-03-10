@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django_q.tasks import async_task
 from pgvector.django import VectorField
 
 from .openai import openai_client
@@ -129,6 +130,12 @@ class Note(models.Model):
 
     def get_absolute_url(self):
         return reverse('note-detail', kwargs={'note_id': self.id})
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.title:
+            from .tasks import generate_note_title
+            async_task(generate_note_title, note_id=self.id)
 
     def set_aliases(self, aliases):
         to_delete = {

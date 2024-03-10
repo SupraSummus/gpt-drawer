@@ -1,6 +1,4 @@
-from notes.models import Reference
+from notes.tasks import generate_note_title
 
 
-for ref in Reference.objects.all():
-    ref.generate_embedding()
-    ref.save(update_fields=['embedding'])
+generate_note_title('c6d43c5b-e782-44dc-acf2-1fab6b075267')
