@@ -50,7 +50,10 @@ class Migration(migrations.Migration):
                         verbose_name='identifier',
                     ),
                 ),
-                ('title', models.CharField(max_length=64, verbose_name='title')),
+                ('title', models.CharField(
+                    max_length=64, verbose_name='title',
+                    blank=True,
+                )),
                 ('content', models.TextField(blank=True, verbose_name='content')),
                 (
                     'notebook',
@@ -65,7 +68,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'note',
                 'verbose_name_plural': 'notes',
-                'ordering': ('notebook', 'title'),
+                'ordering': ('notebook', 'title', 'id'),
                 'unique_together': {('notebook', 'title')},
             },
         ),

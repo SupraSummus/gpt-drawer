@@ -1,0 +1,9 @@
+<form hx-post="{% url 'note-reference-answer' note_reference.id %}" hx-target="this" hx-swap="outerHTML">
+  <p>{{ note_reference.question }}</p>
+  {% csrf_token %}
+  {{ form.as_div }}
+  <div class="grid">
+    <button type="submit">Save</button>
+    <button type="reset" hx-get="{% url 'note-reference' note_reference.id %}">Cancel</button>
+  </div>
+</form>

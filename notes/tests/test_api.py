@@ -108,8 +108,8 @@ def test_note_update(user_client, user_notebook):
     note = NoteFactory(notebook=user_notebook)
     alias_a = AliasFactory(note=note)
     alias_b = AliasFactory(note=note)
-    reference_a = ReferenceFactory(note=note, target_note__notebook=user_notebook)
-    reference_b = ReferenceFactory(note=note, target_note__notebook=user_notebook)
+    reference_a = ReferenceFactory(note=note, target_note=NoteFactory(notebook=user_notebook))
+    reference_b = ReferenceFactory(note=note, target_note=NoteFactory(notebook=user_notebook))
     other_note_c = NoteFactory(notebook=user_notebook)
     response = user_client.patch(
         reverse('api:note-detail', args=[note.id]),

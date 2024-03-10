@@ -31,7 +31,5 @@ class ReferenceFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Reference
 
-    target_note = factory.SubFactory(NoteFactory)
-
 
 NoteReferenceFactory = ReferenceFactory

@@ -22,4 +22,9 @@ urlpatterns = [
         views.NoteReferenceEditView.as_view(),
         name='note-reference-edit',
     ),
+    path(
+        'note-reference/<uuid:note_reference_id>/answer/',
+        views.NoteReferenceAnswerView.as_view(),
+        name='note-reference-answer',
+    ),
 ]

@@ -11,6 +11,13 @@
        <a href="{% url 'note-detail' note_reference.target_note.id %}">{{ note_reference.target_note }}</a>
       {% else %}
         No answer yet
+        &ndash;
+        <a href="#"
+          hx-get="{% url 'note-reference-answer' note_reference.id %}"
+          hx-trigger="click"
+        >Answer in new note</a>
+        &ndash;
+        <a href="#">Select existing note</a>
       {% endif %}
     </p>
   </dd>

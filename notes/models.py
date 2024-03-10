@@ -100,11 +100,12 @@ class Note(models.Model):
     )
     title = models.CharField(
         max_length=64,
+        blank=True,
         verbose_name=_('title'),
     )
     content = models.TextField(
-        verbose_name=_('content'),
         blank=True,
+        verbose_name=_('content'),
     )
 
     referenced_notes = models.ManyToManyField(
@@ -121,13 +122,10 @@ class Note(models.Model):
     class Meta:
         verbose_name = _('note')
         verbose_name_plural = _('notes')
-        unique_together = (
-            ('notebook', 'title'),
-        )
-        ordering = ('notebook', 'title')
+        ordering = ('notebook', 'title', 'id')
 
     def __str__(self):
-        return self.title
+        return self.title or str(self.id)
 
     def get_absolute_url(self):
         return reverse('note-detail', kwargs={'note_id': self.id})

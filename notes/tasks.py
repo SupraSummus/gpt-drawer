@@ -25,9 +25,7 @@ def generate_references(note_id):
         ),
     }]
 
-    example_notes = Note.objects.filter(
-        referencing_notes=note,
-    ).order_by('?')[:3].prefetch_related('references')
+    example_notes = get_example_notes(note, 3).prefetch_related('references')
     for example_note in example_notes:
         messages.append({
             "role": "user",
@@ -49,7 +47,7 @@ def generate_references(note_id):
     response = openai_client.chat.completions.create(
         messages=messages,
         response_format={'type': 'json_object'},
-        model='gpt-4-turbo-preview',
+        model='gpt-3.5-turbo',
         temperature=0,
         max_tokens=1000,
     )
@@ -84,3 +82,44 @@ def check_reference_uniqueness(reference_id):
     else:
         reference.state = ReferenceState.ACTIVE
         reference.save(update_fields=['embedding', 'state'])
+
+
+def generate_note_title(note_id):
+    note = Note.objects.get(id=note_id)
+
+    messages = [
+        {
+            "role": "system",
+            "content": "Generate a title for note you are given.",
+        },
+    ]
+
+    example_notes = get_example_notes(note, 3)
+    for example_note in example_notes:
+        messages.append({
+            "role": "user",
+            "content": example_note.content,
+        })
+        messages.append({
+            "role": "assistant",
+            "content": example_note.title,
+        })
+
+    messages.append({
+        "role": "user",
+        "content": note.content,
+    })
+    response = openai_client.chat.completions.create(
+        messages=messages,
+        model='gpt-3.5-turbo',
+        temperature=0,
+        max_tokens=100,
+    )
+    note.title = response.choices[0].message.content[:64]
+    note.save(update_fields=['title'])
+
+
+def get_example_notes(note, count=3):
+    return Note.objects.filter(
+        referenced_notes=note,
+    ).order_by('?')[:count]
