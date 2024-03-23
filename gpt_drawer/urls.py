@@ -18,7 +18,14 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
+from notes.urls import router as notes_router
+from router import Router
+
 from .api import urlpatterns as api_urlpatterns
+
+
+router = Router()
+router.route_all('notes/', notes_router, name='notes')
 
 
 urlpatterns = [
@@ -28,7 +35,7 @@ urlpatterns = [
     path('unicorn/', include('django_unicorn.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('', include('notes.urls')),
-]
+] + router.urls
 
 if settings.DEBUG_TOOLBAR_ENABLED:
     import debug_toolbar

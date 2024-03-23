@@ -265,6 +265,12 @@ class Reference(models.Model):
         )
         ordering = ('note', 'target_note')
 
+    @property
+    def answer(self):
+        if self.target_note:
+            return self.target_note.content
+        return ''
+
     def get_absolute_url(self):
         return reverse('note-reference', kwargs={'note_reference_id': self.id})
 

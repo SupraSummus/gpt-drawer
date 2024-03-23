@@ -29,3 +29,12 @@ def test_note_reference_create_post(user_client, note, notebook_user_permission)
     note_reference = NoteReference.objects.get(id=note_reference_id)
     assert note_reference.note == note
     assert note_reference.question == 'This is a note reference'
+
+
+@pytest.mark.django_db
+def test_note_reference_answer(user_client, note_reference, notebook_user_permission):
+    response = user_client.get(reverse(
+        'notes:answer:root',
+        kwargs={'note_reference_id': note_reference.id},
+    ))
+    assert response.status_code == 200
