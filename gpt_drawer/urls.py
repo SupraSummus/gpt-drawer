@@ -18,8 +18,8 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import TemplateView
 
+from djsfc import Router
 from notes.urls import router as notes_router
-from router import Router
 
 from .api import urlpatterns as api_urlpatterns
 

@@ -75,3 +75,32 @@ def url(parser, token):
     node = django.template.defaulttags.url(parser, token)
     node.view_name = AddNamespaceFilterExpression(node.view_name)
     return node
+
+
+def get_template_block(template, block_name):
+    assert isinstance(template, django.template.backends.django.Template)
+    node = get_block_from_nodelist(template.template.nodelist, block_name)
+    if not node:
+        raise ValueError(f'Block {block_name} not found in template')
+    return django.template.backends.django.Template(PartialTemplate(
+        node.nodelist,
+        engine=template.backend.engine,
+    ), template.backend)
+
+
+class PartialTemplate(django.template.base.Template):
+    def __init__(self, nodelist, engine):
+        self.nodelist = nodelist
+        self.engine = engine
+        self.name = None
+
+
+def get_block_from_nodelist(nodelist, block_name):
+    for node in nodelist:
+        if isinstance(node, django.template.loader_tags.BlockNode) and node.name == block_name:
+            return node
+        if hasattr(node, 'nodelist'):
+            ret = get_block_from_nodelist(node.nodelist, block_name)
+            if ret is not None:
+                return ret
+    return None

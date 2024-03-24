@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
@@ -58,7 +59,10 @@ class NotebookAskMeView(NotebookViewMixin, TemplateView):
             target_note__isnull=True,
         ).order_by('?').first()
         if unanswered_question:
-            return redirect(unanswered_question)
+            return redirect(reverse(
+                'notes:answer:root',
+                kwargs={'note_reference_id': unanswered_question.id},
+            ))
         return super().get(request, *args, **kwargs)
 
 

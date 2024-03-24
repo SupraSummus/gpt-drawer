@@ -271,6 +271,10 @@ class Reference(models.Model):
             return self.target_note.content
         return ''
 
+    @property
+    def notebook_id(self):
+        return self.note.notebook_id
+
     def get_absolute_url(self):
         return reverse('note-reference', kwargs={'note_reference_id': self.id})
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from router import Router
+from djsfc import Router
 
 from . import node_reference_answer, views
 
