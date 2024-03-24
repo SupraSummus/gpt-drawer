@@ -68,6 +68,7 @@ template_str = '''\
 {% endblock %}
 '''
 template = engines['django'].from_string(template_str)
+note_block = get_template_block(template, 'note')
 
 
 @router.route('GET', '<uuid:note_id>/')
@@ -83,8 +84,7 @@ def root(request, note_id):
 def edit(request, note_id):
     note = get_note(request, note_id)
     form = NoteForm(instance=note)
-    template_block = get_template_block(template, 'note')
-    return TemplateResponse(request, template_block, {
+    return TemplateResponse(request, note_block, {
       'note': note,
       'editing': True,
       'form': form,
@@ -95,15 +95,14 @@ def edit(request, note_id):
 def edit_save(request, note_id):
     note = get_note(request, note_id)
     form = NoteForm(request.POST, instance=note)
-    template_block = get_template_block(template, 'note')
     if form.is_valid():
         form.save()
-        return TemplateResponse(request, template_block, {
+        return TemplateResponse(request, note_block, {
           'note': note,
           'editing': False,
         })
     else:
-        return TemplateResponse(request, template, {
+        return TemplateResponse(request, note_block, {
           'note': note,
           'editing': True,
           'form': form,
@@ -119,8 +118,7 @@ class NoteForm(forms.ModelForm):
 @router.route('GET', '<uuid:note_id>/read/')
 def read(request, note_id):
     note = get_note(request, note_id)
-    template_block = get_template_block(template, 'note')
-    return TemplateResponse(request, template_block, {
+    return TemplateResponse(request, note_block, {
       'note': note,
       'editing': False,
     })
