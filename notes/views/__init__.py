@@ -9,9 +9,9 @@ from django.views.generic import DetailView, ListView, TemplateView
 from django.views.generic.base import ContextMixin, TemplateResponseMixin
 from django.views.generic.edit import CreateView, FormView, UpdateView
 
-from . import models
-from .models import Note, NoteReference
-from .widgets import NoteChoiceWidget
+from .. import models
+from ..models import Note, NoteReference
+from ..widgets import NoteChoiceWidget
 
 
 class NotebookListView(LoginRequiredMixin, ListView):

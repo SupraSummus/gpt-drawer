@@ -5,7 +5,7 @@ from django.template.response import TemplateResponse
 
 from djsfc import Router, get_template_block
 
-from .models import Note, Notebook, NoteReference
+from ..models import Note, Notebook, NoteReference
 
 
 router = Router()

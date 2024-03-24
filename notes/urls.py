@@ -2,11 +2,12 @@ from django.urls import path
 
 from djsfc import Router
 
-from . import node_reference_answer, views
+from . import views
+from .views import answer
 
 
 router = Router()
-router.route_all('answer/', node_reference_answer.router, name='answer')
+router.route_all('answer/', answer.router, name='answer')
 
 
 urlpatterns = [
