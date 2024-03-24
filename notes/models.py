@@ -137,7 +137,7 @@ class Note(models.Model):
         return self.title or str(self.id)
 
     def get_absolute_url(self):
-        return reverse('note-detail', kwargs={'note_id': self.id})
+        return reverse('notes:note:root', kwargs={'note_id': self.id})
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

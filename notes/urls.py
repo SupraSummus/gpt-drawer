@@ -3,11 +3,12 @@ from django.urls import path
 from djsfc import Router
 
 from . import views
-from .views import answer
+from .views import answer, note
 
 
 router = Router()
 router.route_all('answer/', answer.router, name='answer')
+router.route_all('note/', note.router, name='note')
 
 
 urlpatterns = [
@@ -17,8 +18,6 @@ urlpatterns = [
     path('notebook/<uuid:notebook_id>/note-select/', views.NoteSelectView.as_view(), name='note-select'),
     path('notebook/<uuid:notebook_id>/note-search/', views.NoteSearchView.as_view(), name='note-search'),
     path('notebook/<uuid:notebook_id>/note-selected/', views.NoteSelectedView.as_view(), name='note-selected'),
-    path('note/<uuid:note_id>/', views.NoteDetailView.as_view(), name='note-detail'),
-    path('note/<uuid:note_id>/edit/', views.NoteEditView.as_view(), name='note-edit'),
     path(
         'note/<uuid:note_id>/create-note-reference/',
         views.NoteReferenceCreateView.as_view(),

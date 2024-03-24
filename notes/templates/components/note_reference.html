@@ -7,7 +7,7 @@
   <dd>
     {% if note_reference.target_note %}
       <p>
-        <a href="{% url 'note-detail' note_reference.target_note.id %}">{{ note_reference.target_note }}</a>
+        <a href="{% url 'notes:note:root' note_reference.target_note.id %}">{{ note_reference.target_note }}</a>
       </p>
       <p>{{ note_reference.target_note.content|truncatechars:200 }}</p>
     {% else %}

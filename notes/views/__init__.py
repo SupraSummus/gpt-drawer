@@ -125,33 +125,6 @@ class GETMixin(ContextMixin, TemplateResponseMixin):
         return self.render_to_response(self.get_context_data())
 
 
-class NoteDetailView(NoteViewMixin, GETMixin, View):
-    def get_template_names(self):
-        if self.request.htmx:
-            template_name = 'components/note.html'
-        else:
-            template_name = 'note.html'
-        return [template_name]
-
-    def delete(self, request, *args, **kwargs):
-        self.note.delete()
-        return HttpResponse(status=200, content='')
-
-
-class NoteForm(forms.ModelForm):
-    class Meta:
-        model = Note
-        fields = ('title', 'content')
-
-
-class NoteEditView(NoteViewMixin, UpdateView):
-    template_name = 'components/note_edit.html'
-    form_class = NoteForm
-
-    def get_object(self):
-        return self.note
-
-
 # ### Note references ###
 
 

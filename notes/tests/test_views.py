@@ -6,7 +6,14 @@ from ..models import NoteReference
 
 @pytest.mark.django_db
 def test_note_detail(user_client, note, notebook_user_permission):
-    response = user_client.get(reverse('note-detail', kwargs={'note_id': note.id}))
+    response = user_client.get(reverse('notes:note:root', kwargs={'note_id': note.id}))
+    assert response.status_code == 200
+    assert response.context['note'] == note
+
+
+@pytest.mark.django_db
+def test_note_get_edit_form(user_client, note, notebook_user_permission):
+    response = user_client.get(reverse('notes:note:edit', kwargs={'note_id': note.id}))
     assert response.status_code == 200
     assert response.context['note'] == note
 
