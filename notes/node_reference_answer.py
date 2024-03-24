@@ -29,7 +29,7 @@ template_str = '''\
       {% csrf_token %}
       <textarea name="answer" rows="4"
         hx-get="{% url ':get_suggestions' note_reference.id %}"
-        hx-trigger="input change"
+        hx-trigger="input change delay:500ms"
         hx-target="#suggested_notes"
         hx-swap="outerHTML"
         hx-vals="answer"
@@ -64,9 +64,9 @@ template = engines['django'].from_string(template_str)
 def root(request, note_reference_id):
     note_reference = get_note_reference(request, note_reference_id)
     if note_reference.answer:
-        suggested_notes = Note.objects.search(note_reference.answer)
+        suggested_notes = Note.objects.autocomplete_search(note_reference.answer)
     else:
-        suggested_notes = Note.objects.search(note_reference.question)
+        suggested_notes = Note.objects.autocomplete_search(note_reference.question)
     return TemplateResponse(request, template, {
         'note_reference': note_reference,
         'suggested_notes': suggested_notes,
@@ -138,7 +138,7 @@ def get_suggestions(request, note_reference_id):
     text = request.GET.get('answer', '')
     suggested_notes = Note.objects.filter(
       notebook_id=note_reference.notebook_id,
-    ).search(text)
+    ).autocomplete_search(text)
     template_block = get_template_block(template, 'suggested_notes')
     return TemplateResponse(request, template_block, {
         'note_reference': note_reference,

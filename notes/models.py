@@ -6,16 +6,12 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django_q.tasks import async_task
-from pgvector.django import VectorField
+from pgvector.django import CosineDistance, VectorField
 
-from .openai import openai_client
+from .openai import generate_embedding
 
 
 User = get_user_model()
-
-
-def schedulable(func):
-    return func
 
 
 class NotebookQuerySet(models.QuerySet):
@@ -79,11 +75,17 @@ class NoteQuerySet(models.QuerySet):
     def accessible_by_user(self, user):
         return self.filter(notebook__user_permissions__user=user)
 
-    def search(self, query):
+    def autocomplete_search(self, query):
         return self.filter(
             Q(title__istartswith=query) |
             Q(aliases__title__istartswith=query)
         )
+
+    def embedding_search(self, query):
+        embedding = generate_embedding(query)
+        return self.annotate(
+            distance=CosineDistance('embedding', embedding),
+        ).order_by('distance')
 
 
 class Note(models.Model):
@@ -107,6 +109,12 @@ class Note(models.Model):
     content = models.TextField(
         blank=True,
         verbose_name=_('content'),
+    )
+    embedding = VectorField(
+        dimensions=3072,
+        verbose_name=_('embedding'),
+        null=True,
+        blank=True,
     )
 
     referenced_notes = models.ManyToManyField(
@@ -136,6 +144,9 @@ class Note(models.Model):
         if not self.title:
             from .tasks import generate_note_title
             async_task(generate_note_title, note_id=self.id)
+        if self.embedding is None:
+            from .tasks import generate_note_embedding
+            async_task(generate_note_embedding, note_id=self.id)
 
     def set_aliases(self, aliases):
         to_delete = {
@@ -293,14 +304,11 @@ class Reference(models.Model):
                 ),
             }, code='notebook_mismatch')
 
-    def generate_embedding(self):
-        response = openai_client.embeddings.create(
-            input=self.question,
-            model='text-embedding-3-large',
-        )
-        embedding = response.data[0].embedding
-        assert len(embedding) == 3072
-        self.embedding = embedding
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.embedding is None:
+            from .tasks import generate_reference_embedding
+            async_task(generate_reference_embedding, reference_id=self.id)
 
 
 NoteReference = Reference

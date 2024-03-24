@@ -34,7 +34,7 @@ class NoteFiterSet(django_filters.FilterSet):
         fields = ()
 
     def search_filter(self, queryset, name, value):
-        return queryset.search(value)
+        return queryset.autocomplete_search(value)
 
 
 class NoteViewSet(ModelViewSet):

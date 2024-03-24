@@ -1,11 +1,12 @@
 
 import json
 
-from django_q.tasks import async_task
+import django_q
+from django_q.tasks import async_chain
 from pgvector.django import CosineDistance
 
 from .models import Note, Reference, ReferenceState
-from .openai import openai_client
+from .openai import generate_embedding, openai_client
 
 
 def generate_references(note_id):
@@ -63,13 +64,14 @@ def generate_references(note_id):
     ]
     Reference.objects.bulk_create(references)
     for reference in references:
-        async_task(check_reference_uniqueness, reference.id)
+        async_chain([
+            ('notes.tasks.generate_reference_embedding', (reference.id,)),
+            ('notes.tasks.check_reference_uniqueness', (reference.id,)),
+        ], sync=django_q.conf.Conf.SYNC)
 
 
 def check_reference_uniqueness(reference_id):
     reference = Reference.objects.get(id=reference_id)
-    if reference.embedding is None:
-        reference.generate_embedding()
     similar_references = Reference.objects.annotate(
         distance=CosineDistance('embedding', reference.embedding),
     ).filter(
@@ -81,7 +83,7 @@ def check_reference_uniqueness(reference_id):
         reference.delete()
     else:
         reference.state = ReferenceState.ACTIVE
-        reference.save(update_fields=['embedding', 'state'])
+        reference.save(update_fields=['state'])
 
 
 def generate_note_title(note_id):
@@ -123,3 +125,15 @@ def get_example_notes(note, count=3):
     return Note.objects.filter(
         referenced_notes=note,
     ).order_by('?')[:count]
+
+
+def generate_note_embedding(note_id):
+    note = Note.objects.get(id=note_id)
+    note.embedding = generate_embedding(note.content)
+    note.save(update_fields=['embedding'])
+
+
+def generate_reference_embedding(reference_id):
+    reference = Reference.objects.get(id=reference_id)
+    reference.embedding = generate_embedding(reference.question)
+    reference.save(update_fields=['embedding'])

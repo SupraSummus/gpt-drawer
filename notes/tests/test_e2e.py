@@ -42,8 +42,8 @@ def chat_completion_mock(monkeypatch):
     return completions_mock
 
 
-@pytest.mark.django_db
-def test_generate_references(note, monkeypatch, sync_tasks, chat_completion_mock):
+@pytest.fixture
+def embedding_mock(monkeypatch):
     embedding_mock = mock.Mock()
     embedding_mock.return_value = CreateEmbeddingResponse(
         data=[
@@ -61,7 +61,11 @@ def test_generate_references(note, monkeypatch, sync_tasks, chat_completion_mock
         ),
     )
     monkeypatch.setattr(openai_client.embeddings, 'create', embedding_mock)
+    return embedding_mock
 
+
+@pytest.mark.django_db
+def test_generate_references(note, monkeypatch, sync_tasks, chat_completion_mock, embedding_mock):
     generate_references(note.id)
 
     note.refresh_from_db()
@@ -76,6 +80,7 @@ def test_note_reference_answer(
     user_client, note_reference, notebook_user_permission,
     sync_tasks,
     chat_completion_mock,
+    embedding_mock,
 ):
     chat_completion_mock.return_value.choices[0].message.content = 'LLM generated title'
     response = user_client.post(

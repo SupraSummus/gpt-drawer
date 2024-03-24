@@ -85,7 +85,7 @@ class NoteSearchView(NotebookViewMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['field_name'] = self.request.GET.get('field_name')
-        context['notes'] = self.notebook.notes.search(self.request.GET.get('q'))[0:10]
+        context['notes'] = self.notebook.notes.autocomplete_search(self.request.GET.get('q'))[0:10]
         return context
 
 
