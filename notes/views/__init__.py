@@ -1,17 +1,13 @@
-from django import forms
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.utils.translation import gettext as _
-from django.views import View
 from django.views.generic import DetailView, ListView, TemplateView
-from django.views.generic.base import ContextMixin, TemplateResponseMixin
-from django.views.generic.edit import CreateView, FormView, UpdateView
+from django.views.generic.base import ContextMixin
+from django.views.generic.edit import CreateView
 
 from .. import models
 from ..models import Note, NoteReference
-from ..widgets import NoteChoiceWidget
+from .note import NoteReferenceForm
 
 
 class NotebookListView(LoginRequiredMixin, ListView):
@@ -120,75 +116,7 @@ class NoteViewMixin(LoginRequiredMixin, ContextMixin):
         return context
 
 
-class GETMixin(ContextMixin, TemplateResponseMixin):
-    def get(self, request, *args, **kwargs):
-        return self.render_to_response(self.get_context_data())
-
-
 # ### Note references ###
-
-
-class NoteReferenceViewMixin(LoginRequiredMixin, TemplateResponseMixin):
-    def dispatch(self, request, *args, note_reference_id, **kwargs):
-        self.note_reference = get_object_or_404(
-            NoteReference.objects.accessible_by_user(self.request.user),
-            id=note_reference_id,
-        )
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['note_reference'] = self.note_reference
-        return context
-
-
-class NoteReferenceView(NoteReferenceViewMixin, GETMixin, View):
-    def get_template_names(self):
-        if self.request.htmx:
-            template_name = 'components/note_reference.html'
-        else:
-            template_name = 'note_reference.html'
-        return [template_name]
-
-    def delete(self, request, *args, **kwargs):
-        self.note_reference.delete()
-        return HttpResponse(status=200, content='')
-
-
-class NoteReferenceForm(forms.ModelForm):
-    target_note = forms.ModelChoiceField(
-        queryset=Note.objects.none(),
-        required=False,
-    )
-
-    class Meta:
-        model = NoteReference
-        fields = ('question', 'target_note')
-
-    def __init__(self, *args, user, **kwargs):
-        super().__init__(*args, **kwargs)
-        notebook_id = self.instance.note.notebook_id
-        self.fields['target_note'].queryset = Note.objects.accessible_by_user(
-            user,
-        ).filter(
-            notebook_id=notebook_id,
-        )
-        self.fields['target_note'].widget = NoteChoiceWidget(
-            notebook_id=notebook_id,
-        )
-
-
-class NoteReferenceEditView(NoteReferenceViewMixin, UpdateView):
-    template_name = 'components/note_reference_edit.html'
-    form_class = NoteReferenceForm
-
-    def get_object(self):
-        return self.note_reference
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
 
 
 class NoteReferenceCreateView(NoteViewMixin, CreateView):
@@ -202,23 +130,5 @@ class NoteReferenceCreateView(NoteViewMixin, CreateView):
         kwargs['instance'] = NoteReference(note=self.note)
         return kwargs
 
-
-class NoteReferenceAnswerForm(forms.Form):
-    answer = Note._meta.get_field('content').formfield(
-        required=True,
-        label=_('Answer'),
-    )
-
-
-class NoteReferenceAnswerView(NoteReferenceViewMixin, FormView):
-    template_name = 'components/note_reference_answer.html'
-    form_class = NoteReferenceAnswerForm
-
-    def form_valid(self, form):
-        note = Note.objects.create(
-            notebook=self.note_reference.note.notebook,
-            content=form.cleaned_data['answer'],
-        )
-        self.note_reference.target_note = note
-        self.note_reference.save(update_fields=('target_note',))
-        return redirect(self.note_reference)
+    def get_success_url(self):
+        return reverse('notes:note:note_reference_read', kwargs={'note_reference_id': self.object.id})

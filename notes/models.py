@@ -286,9 +286,6 @@ class Reference(models.Model):
     def notebook_id(self):
         return self.note.notebook_id
 
-    def get_absolute_url(self):
-        return reverse('note-reference', kwargs={'note_reference_id': self.id})
-
     def clean_fields(self, exclude=()):
         super().clean_fields(exclude=exclude)
 

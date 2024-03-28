@@ -1,3 +1,5 @@
+import importlib
+
 import django
 from django import template
 
@@ -82,16 +84,24 @@ def get_template_block(template, block_name):
     node = get_block_from_nodelist(template.template.nodelist, block_name)
     if not node:
         raise ValueError(f'Block {block_name} not found in template')
+    nodelist = node.nodelist
+    start = nodelist[0].token.position[0]
+    end = nodelist[-1].token.position[1]
+    source = template.template.source[start:end]
     return django.template.backends.django.Template(PartialTemplate(
-        node.nodelist,
+        nodelist,
         engine=template.backend.engine,
+        origin=template.origin,
+        source=source,
     ), template.backend)
 
 
 class PartialTemplate(django.template.base.Template):
-    def __init__(self, nodelist, engine):
+    def __init__(self, nodelist, engine, origin=None, source=None):
         self.nodelist = nodelist
         self.engine = engine
+        self.origin = origin
+        self.source = source
         self.name = None
 
 
@@ -99,8 +109,27 @@ def get_block_from_nodelist(nodelist, block_name):
     for node in nodelist:
         if isinstance(node, django.template.loader_tags.BlockNode) and node.name == block_name:
             return node
-        if hasattr(node, 'nodelist'):
-            ret = get_block_from_nodelist(node.nodelist, block_name)
+        for child_nodelist_name in getattr(node, 'child_nodelists', []):
+            ret = get_block_from_nodelist(getattr(node, child_nodelist_name), block_name)
             if ret is not None:
                 return ret
     return None
+
+
+class TemplateLoader:
+    def __init__(self, engine):
+        self.engine = engine
+
+    def get_template(self, template_name, skip=None):
+        assert skip is None
+        assert template_name.endswith('.html')
+        template_name = template_name[:-5]
+        template_name = template_name.replace('/', '.')
+        try:
+            module = importlib.import_module(template_name)
+        except ModuleNotFoundError:
+            raise django.template.exceptions.TemplateDoesNotExist(template_name)
+        return module.template
+
+    def reset(self):
+        pass

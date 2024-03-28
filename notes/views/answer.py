@@ -5,7 +5,7 @@ from django.template.response import TemplateResponse
 
 from djsfc import Router, get_template_block
 
-from ..models import Note, Notebook, NoteReference
+from ..models import Note, NoteReference
 
 
 router = Router()
@@ -153,12 +153,3 @@ def get_note_reference(request, note_reference_id):
         id=note_reference_id,
     )
     return note_reference
-
-
-def get_notebook(request, notebook_id):
-    user = request.user
-    notebook = get_object_or_404(
-        Notebook.objects.accessible_by_user(user),
-        id=notebook_id,
-    )
-    return notebook

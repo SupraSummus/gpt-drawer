@@ -84,7 +84,7 @@ def test_note_reference_answer(
 ):
     chat_completion_mock.return_value.choices[0].message.content = 'LLM generated title'
     response = user_client.post(
-        reverse('note-reference-answer', kwargs={'note_reference_id': note_reference.id}),
+        reverse('notes:answer:create_answer', kwargs={'note_reference_id': note_reference.id}),
         data={'answer': 'This is an answer'},
     )
     assert response.status_code == 302
