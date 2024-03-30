@@ -32,7 +32,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(api_urlpatterns)),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('unicorn/', include('django_unicorn.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('', include('notes.urls')),
 ] + router.urls
