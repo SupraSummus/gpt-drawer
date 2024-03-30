@@ -9,7 +9,7 @@ runs:
         python-version: '3.11'
 
     - name: Configure poetry
-      shell: bask
+      shell: bash
       run: poetry config virtualenvs.create false
 
     - name: Install Python dependencies
