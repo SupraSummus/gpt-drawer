@@ -1,0 +1,21 @@
+name: Set up python environment
+runs:
+  using: composite
+  steps:
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Configure poetry
+      shell: bask
+      run: poetry config virtualenvs.create false
+
+    - name: Install Python dependencies
+      shell: bash
+      run: poetry install
+
+    - name: Configure django settings
+      shell: bash
+      run: cp env.example .env
