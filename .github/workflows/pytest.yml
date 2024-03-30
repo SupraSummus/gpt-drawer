@@ -35,7 +35,7 @@ jobs:
       - uses: ./.github/actions/python
 
       - name: Run pytest with coverage
-        run: pytest --cov
+        run: poetry run pytest --cov
         env:
           DATABASE_URL: postgresql://postgres:postgrespass@localhost:5432/gpt_drawer
 
