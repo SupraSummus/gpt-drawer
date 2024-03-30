@@ -38,3 +38,6 @@ jobs:
         run: pytest --cov
         env:
           DATABASE_URL: postgresql://postgres:postgrespass@localhost:5432/gpt_drawer
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
