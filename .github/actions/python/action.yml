@@ -8,9 +8,8 @@ runs:
       with:
         python-version: '3.11'
 
-    - name: Configure poetry
-      shell: bash
-      run: poetry config virtualenvs.create false
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
 
     - name: Install Python dependencies
       shell: bash
