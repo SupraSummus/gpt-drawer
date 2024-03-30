@@ -31,6 +31,7 @@ def chat_completion_mock(monkeypatch):
                 ),
                 finish_reason='stop',
                 index=0,
+                logprobs=None,
             ),
         ],
         id='cmpl-123',
