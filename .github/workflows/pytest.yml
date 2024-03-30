@@ -35,9 +35,11 @@ jobs:
       - uses: ./.github/actions/python
 
       - name: Run pytest with coverage
-        run: poetry run pytest --cov
+        run: poetry run pytest --cov-report=xml --cov=gpt_drawer --cov=users --cov=notes --cov=djsfc --cov=admin_utils
         env:
           DATABASE_URL: postgresql://postgres:postgrespass@localhost:5432/gpt_drawer
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
