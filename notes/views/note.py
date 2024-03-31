@@ -2,10 +2,12 @@ from django import forms
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django_q.tasks import async_task
 
 from djsfc import Router, get_template_block, parse_template
 
 from ..models import Note, NoteReference
+from ..tasks import generate_references
 from ..widgets import NoteChoiceWidget
 
 
@@ -128,11 +130,19 @@ template_str = '''\
             </form>
           {% endblock %}
         {% endif %}
+        {% if generating_qa %}
+          {% block generating_qa %}
+            <p>Generating QA...</p>
+          {% endblock %}
+        {% endif %}
         <p hx-target="this" hx-swap="beforebegin">
           <button class="outline"
             hx-get="{% url ':new_note_reference_form' note.id %}"
             hx-trigger="click"
           >Add QA entry</button>
+          <button class="outline"
+            hx-post="{% url ':trigger_auto_qa_generation' note.id %}"
+          >Generate QA</button>
         </p>
 
       </dl>
@@ -145,6 +155,7 @@ template = parse_template(template_str, router)
 note_block = get_template_block(template, 'note')
 note_reference_block = get_template_block(template, 'note_reference')
 new_note_reference_block = get_template_block(template, 'new_note_reference')
+generating_qa_block = get_template_block(template, 'generating_qa')
 
 router.route_all('asdf/', 'notes.views.asdf')
 
@@ -230,6 +241,13 @@ def new_note_reference_save(request, note_id):
           'note': note,
           'form': form,
         })
+
+
+@router.route('POST', '<uuid:note_id>/trigger-auto-qa-generation/')
+def trigger_auto_qa_generation(request, note_id):
+    note = get_note(request, note_id)
+    async_task(generate_references, note_id=note.id)
+    return TemplateResponse(request, generating_qa_block, {})
 
 
 def get_note(request, note_id):

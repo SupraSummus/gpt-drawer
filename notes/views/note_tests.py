@@ -20,3 +20,12 @@ def test_note_reference_edit(user_client, note_reference, notebook_user_permissi
     ))
     assert response.status_code == 200
     assert response.context['note_reference'] == note_reference
+
+
+@pytest.mark.django_db
+def test_trigger_auto_qa_generation(user_client, note, notebook_user_permission):
+    response = user_client.post(reverse(
+        'notes:note:trigger_auto_qa_generation',
+        kwargs={'note_id': note.id},
+    ))
+    assert response.status_code == 200
