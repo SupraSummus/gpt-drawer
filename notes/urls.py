@@ -18,9 +18,4 @@ urlpatterns = [
     path('notebook/<uuid:notebook_id>/note-select/', views.NoteSelectView.as_view(), name='note-select'),
     path('notebook/<uuid:notebook_id>/note-search/', views.NoteSearchView.as_view(), name='note-search'),
     path('notebook/<uuid:notebook_id>/note-selected/', views.NoteSelectedView.as_view(), name='note-selected'),
-    path(
-        'note/<uuid:note_id>/create-note-reference/',
-        views.NoteReferenceCreateView.as_view(),
-        name='note-reference-create',
-    ),
 ]

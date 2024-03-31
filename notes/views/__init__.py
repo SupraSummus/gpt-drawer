@@ -3,11 +3,9 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import DetailView, ListView, TemplateView
 from django.views.generic.base import ContextMixin
-from django.views.generic.edit import CreateView
 
 from .. import models
-from ..models import Note, NoteReference
-from .note import NoteReferenceForm
+from ..models import NoteReference
 
 
 class NotebookListView(LoginRequiredMixin, ListView):
@@ -98,37 +96,3 @@ class NoteSelectedView(NotebookViewMixin, TemplateView):
         else:
             context['note'] = self.notebook.notes.filter(id=note_id_str).first()
         return context
-
-
-# ### Notes ###
-
-class NoteViewMixin(LoginRequiredMixin, ContextMixin):
-    def dispatch(self, request, *args, note_id, **kwargs):
-        self.note = get_object_or_404(
-            Note.objects.accessible_by_user(self.request.user),
-            id=note_id,
-        )
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['note'] = self.note
-        return context
-
-
-# ### Note references ###
-
-
-class NoteReferenceCreateView(NoteViewMixin, CreateView):
-    model = NoteReference
-    form_class = NoteReferenceForm
-    template_name = 'components/note_reference_create.html'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        kwargs['instance'] = NoteReference(note=self.note)
-        return kwargs
-
-    def get_success_url(self):
-        return reverse('notes:note:note_reference_read', kwargs={'note_reference_id': self.object.id})

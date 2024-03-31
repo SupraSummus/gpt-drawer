@@ -85,9 +85,7 @@ def get_template_block(template, block_name):
     if not node:
         raise ValueError(f'Block {block_name} not found in template')
     nodelist = node.nodelist
-    start = nodelist[0].token.position[0]
-    end = nodelist[-1].token.position[1]
-    source = template.template.source[start:end]
+    source = template.template.source
     return django.template.backends.django.Template(PartialTemplate(
         nodelist,
         engine=template.backend.engine,

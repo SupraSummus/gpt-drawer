@@ -113,12 +113,29 @@ template_str = '''\
             {% endif %}
           {% endblock %}
         {% endfor %}
+
+        {% if adding_reference %}
+          {% block new_note_reference %}
+            <form
+              hx-post="{% url ':new_note_reference_save' note.id %}"
+              hx-target="this" hx-swap="outerHTML"
+            >
+              {% csrf_token %}
+              {{ form.as_div }}
+              <div class="grid">
+                <button type="submit">Save</button>
+                <button type="reset" hx-on:click="this.closest('form').remove()">Cancel</button>
+              </div>
+            </form>
+          {% endblock %}
+        {% endif %}
         <p hx-target="this" hx-swap="beforebegin">
           <button class="outline"
-            hx-get="{% url 'note-reference-create' note.id %}"
+            hx-get="{% url ':new_note_reference_form' note.id %}"
             hx-trigger="click"
           >Add QA entry</button>
         </p>
+
       </dl>
     </section>
 
@@ -128,6 +145,7 @@ template_str = '''\
 template = engines['django'].from_string(template_str)
 note_block = get_template_block(template, 'note')
 note_reference_block = get_template_block(template, 'note_reference')
+new_note_reference_block = get_template_block(template, 'new_note_reference')
 
 
 @router.route('GET', '<uuid:note_id>/')
@@ -136,6 +154,7 @@ def root(request, note_id):
     return TemplateResponse(request, template, {
       'note': note,
       'editing': False,
+      'adding_reference': False,
     })
 
 
@@ -181,6 +200,35 @@ def read(request, note_id):
       'note': note,
       'editing': False,
     })
+
+
+@router.route('GET', '<uuid:note_id>/new-reference/')
+def new_note_reference_form(request, note_id):
+    note = get_note(request, note_id)
+    note_reference = NoteReference(note=note)
+    form = NoteReferenceForm(instance=note_reference, user=request.user)
+    return TemplateResponse(request, new_note_reference_block, {
+      'note': note,
+      'form': form,
+    })
+
+
+@router.route('POST', '<uuid:note_id>/new-reference/')
+def new_note_reference_save(request, note_id):
+    note = get_note(request, note_id)
+    note_reference = NoteReference(note=note)
+    form = NoteReferenceForm(request.POST, instance=note_reference, user=request.user)
+    if form.is_valid():
+        form.save()
+        return TemplateResponse(request, note_reference_block, {
+          'note_reference': note_reference,
+          'editing': False,
+        })
+    else:
+        return TemplateResponse(request, new_note_reference_block, {
+          'note': note,
+          'form': form,
+        })
 
 
 def get_note(request, note_id):
