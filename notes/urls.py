@@ -6,7 +6,7 @@ from . import views
 from .views import answer, note
 
 
-router = Router()
+router = Router(__name__)
 router.route_all('answer/', answer.router, name='answer')
 router.route_all('note/', note.router, name='note')
 

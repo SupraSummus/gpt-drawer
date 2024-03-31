@@ -1,14 +1,13 @@
 from django import forms
 from django.shortcuts import get_object_or_404, redirect
-from django.template import engines
 from django.template.response import TemplateResponse
 
-from djsfc import Router, get_template_block
+from djsfc import Router, get_template_block, parse_template
 
 from ..models import Note, NoteReference
 
 
-router = Router()
+router = Router(__name__)
 
 template_str = '''\
 {% extends 'base.html' %}
@@ -57,7 +56,7 @@ template_str = '''\
   </main>
 {% endblock %}
 '''
-template = engines['django'].from_string(template_str)
+template = parse_template(template_str, router)
 
 
 @router.route('GET', '<uuid:note_reference_id>/')

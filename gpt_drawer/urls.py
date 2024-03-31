@@ -24,7 +24,7 @@ from notes.urls import router as notes_router
 from .api import urlpatterns as api_urlpatterns
 
 
-router = Router()
+router = Router(__name__)
 router.route_all('notes/', notes_router, name='notes')
 
 

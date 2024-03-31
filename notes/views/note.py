@@ -1,16 +1,15 @@
 from django import forms
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.template import engines
 from django.template.response import TemplateResponse
 
-from djsfc import Router, get_template_block
+from djsfc import Router, get_template_block, parse_template
 
 from ..models import Note, NoteReference
 from ..widgets import NoteChoiceWidget
 
 
-router = Router()
+router = Router(__name__)
 
 
 template_str = '''\
@@ -138,14 +137,16 @@ template_str = '''\
 
       </dl>
     </section>
-
+    {% include 'notes/views/asdf.html' %}
   </main>
 {% endblock %}
 '''
-template = engines['django'].from_string(template_str)
+template = parse_template(template_str, router)
 note_block = get_template_block(template, 'note')
 note_reference_block = get_template_block(template, 'note_reference')
 new_note_reference_block = get_template_block(template, 'new_note_reference')
+
+router.route_all('asdf/', 'notes.views.asdf')
 
 
 @router.route('GET', '<uuid:note_id>/')

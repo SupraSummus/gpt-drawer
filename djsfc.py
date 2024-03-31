@@ -5,9 +5,13 @@ from django import template
 
 
 class Router:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.patterns = {}
         self.sub_routers = {}
+
+    def __str__(self):
+        return self.name
 
     def route(self, method, pattern):
         def decorator(view_func):
@@ -20,6 +24,10 @@ class Router:
         return decorator
 
     def route_all(self, pattern, sub_router, name=None):
+        if isinstance(sub_router, str):
+            sub_router = importlib.import_module(sub_router).router
+        if pattern in self.sub_routers:
+            raise ValueError(f'Sub-router for {pattern} already exists: {self.sub_routers[pattern]}')
         self.sub_routers[pattern] = (sub_router, name)
 
     @property
@@ -27,7 +35,7 @@ class Router:
         urls = []
 
         for pattern, handlers in self.patterns.items():
-            view_func = MethodDispatchView(handlers)
+            view_func = MethodDispatchView(handlers, router=self)
             # we need to include view_func multiple times to get multiple names
             for method, (_, name) in handlers.items():
                 urls.append(django.urls.path(
@@ -45,37 +53,85 @@ class Router:
 
         return urls
 
+    def get_relative_name(self, router):
+        """
+        Return namespace path from this router to the given router
+        as a tuple of strings. Return None if the given router is not
+        a sub-router of this router.
+        """
+        if self == router:
+            return ()
+        for pattern, (sub_router, name) in self.sub_routers.items():
+            relative_name = sub_router.get_relative_name(router)
+            if relative_name is not None:
+                if name is None:
+                    return relative_name
+                else:
+                    return (name,) + relative_name
+        return None
+
 
 class MethodDispatchView:
-    def __init__(self, handlers):
+    def __init__(self, handlers, router):
         self.handlers = handlers
+        self.router = router
 
     def __call__(self, request, *args, **kwargs):
         handler = self.handlers.get(request.method)
         if handler is None:
             return django.http.HttpResponseNotAllowed(self.handlers.keys())
         view_func, _ = handler
+        request.router = self.router
         return view_func(request, *args, **kwargs)
+
+
+def parse_template(template_str, router):
+    django_engine = django.template.engines['django']
+    origin = django.template.Origin(router.name)
+    origin.router = router
+    template = django.template.Template(
+        template_str,
+        engine=django_engine.engine,
+        origin=origin,
+    )
+    return django.template.backends.django.Template(
+        template,
+        django_engine,
+    )
 
 
 register = template.Library()
 
 
 class AddNamespaceFilterExpression:
-    def __init__(self, filter_expression):
+    def __init__(self, filter_expression, router):
         self.filter_expression = filter_expression
+        self.router = router
 
     def resolve(self, context):
         resolved = self.filter_expression.resolve(context)
         if resolved.startswith(':'):
-            return context['request'].resolver_match.namespace + resolved
+            request = context.request
+            router = request.router
+            name_path = router.get_relative_name(self.router)
+            if name_path is None:
+                raise ValueError(
+                    f'Cannot resolve relative URL {resolved} in router {self.router}. '
+                    f'Router {self.router} is not a sub-router of main matched router {router}.'
+                )
+            resolved = ':'.join([
+                request.resolver_match.namespace,
+                *name_path,
+                resolved[1:],
+            ])
         return resolved
 
 
 @register.tag
 def url(parser, token):
     node = django.template.defaulttags.url(parser, token)
-    node.view_name = AddNamespaceFilterExpression(node.view_name)
+    if hasattr(parser.origin, 'router'):
+        node.view_name = AddNamespaceFilterExpression(node.view_name, parser.origin.router)
     return node
 
 
@@ -127,7 +183,7 @@ class TemplateLoader:
             module = importlib.import_module(template_name)
         except ModuleNotFoundError:
             raise django.template.exceptions.TemplateDoesNotExist(template_name)
-        return module.template
+        return module.template.template
 
     def reset(self):
         pass
