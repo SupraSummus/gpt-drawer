@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.views.generic import DetailView, ListView, TemplateView
+from django.views.generic import ListView, TemplateView
 from django.views.generic.base import ContextMixin
 
 from .. import models
@@ -29,18 +29,6 @@ class NotebookViewMixin(LoginRequiredMixin, ContextMixin):
         context = super().get_context_data(**kwargs)
         context['notebook'] = self.notebook
         context['notebook_id'] = self.notebook.id
-        return context
-
-
-class NotebookDetailView(NotebookViewMixin, DetailView):
-    template_name = 'notebook.html'
-
-    def get_object(self):
-        return self.notebook
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['notes'] = self.notebook.notes.all()
         return context
 
 
