@@ -139,12 +139,18 @@ class Note(models.Model):
     def get_absolute_url(self):
         return reverse('notes:note:root', kwargs={'note_id': self.id})
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if not self.title:
+    def save(self, *args, update_fields=None, **kwargs):
+        super().save(*args, update_fields=update_fields, **kwargs)
+        if (
+            not self.title and
+            (update_fields is None or 'title' in update_fields)
+        ):
             from .tasks import generate_note_title
             async_task(generate_note_title, note_id=self.id)
-        if self.embedding is None:
+        if (
+            self.embedding is None and
+            (update_fields is None or 'embedding' in update_fields)
+        ):
             from .tasks import generate_note_embedding
             async_task(generate_note_embedding, note_id=self.id)
 
@@ -301,9 +307,12 @@ class Reference(models.Model):
                 ),
             }, code='notebook_mismatch')
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.embedding is None:
+    def save(self, *args, update_fields=None, **kwargs):
+        super().save(*args, update_fields=update_fields, **kwargs)
+        if (
+            self.embedding is None and
+            (update_fields is None or 'embedding' in update_fields)
+        ):
             from .tasks import generate_reference_embedding
             async_task(generate_reference_embedding, reference_id=self.id)
 
