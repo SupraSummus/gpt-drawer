@@ -116,6 +116,10 @@ class Note(models.Model):
         null=True,
         blank=True,
     )
+    generating_references = models.BooleanField(
+        default=False,
+        verbose_name=_('generating QA'),
+    )
 
     referenced_notes = models.ManyToManyField(
         to='self',
@@ -153,6 +157,12 @@ class Note(models.Model):
         ):
             from .tasks import generate_note_embedding
             async_task(generate_note_embedding, note_id=self.id)
+
+    def schedule_generate_references(self):
+        self.generating_references = True
+        self.save(update_fields=['generating_references'])
+        from .tasks import generate_note_references
+        async_task(generate_note_references, note_id=self.id)
 
     def set_aliases(self, aliases):
         to_delete = {

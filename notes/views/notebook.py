@@ -60,10 +60,11 @@ template_str = '''\
               See more
             </a>
             &ndash;
-            <a href="#"
+            <button
               hx-delete="{% url ':delete_note' note.id %}"
               hx-confirm="Are you sure?"
-            >Delete</a>
+              class="outline secondary"
+            >Delete</button>
           </p>
         </article>
       {% endblock %}

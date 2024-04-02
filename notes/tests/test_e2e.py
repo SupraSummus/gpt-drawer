@@ -11,7 +11,6 @@ from openai.types.embedding import Embedding
 
 from notes.models import ReferenceState
 from notes.openai import openai_client
-from notes.tasks import generate_references
 
 
 @pytest.fixture
@@ -67,9 +66,10 @@ def embedding_mock(monkeypatch):
 
 @pytest.mark.django_db
 def test_generate_references(note, monkeypatch, sync_tasks, chat_completion_mock, embedding_mock):
-    generate_references(note.id)
+    note.schedule_generate_references()
 
     note.refresh_from_db()
+    assert not note.generating_references  # we have already finished (sync tasks)
 
     reference = note.references.first()
     assert reference.state == ReferenceState.ACTIVE

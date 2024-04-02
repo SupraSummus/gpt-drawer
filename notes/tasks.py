@@ -69,6 +69,12 @@ def generate_references(note_id):
             ('notes.tasks.check_reference_uniqueness', (reference.id,)),
         ], sync=django_q.conf.Conf.SYNC)
 
+    note.generating_references = False
+    note.save(update_fields=['generating_references'])
+
+
+generate_note_references = generate_references
+
 
 def check_reference_uniqueness(reference_id):
     reference = Reference.objects.get(id=reference_id)
