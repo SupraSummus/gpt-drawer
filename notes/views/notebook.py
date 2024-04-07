@@ -1,12 +1,11 @@
 from django import forms
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 
 from djsfc import Router, get_template_block, parse_template
 
-from ..models import Note, Notebook
-from .note import get_note
+from ..models import Note
+from .common import get_note, get_notebook
 
 
 router = Router(__name__)
@@ -132,10 +131,3 @@ def delete_note(request, note_id):
     note = get_note(request, note_id)
     note.delete()
     return HttpResponse()
-
-
-def get_notebook(request, notebook_id):
-    return get_object_or_404(
-        Notebook.objects.accessible_by_user(request.user),
-        id=notebook_id,
-    )

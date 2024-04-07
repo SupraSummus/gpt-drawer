@@ -28,14 +28,16 @@ router = Router(__name__)
 router.route_all('notes/', notes_router, name='notes')
 
 
-urlpatterns = [
+urlpatterns = (
     path('admin/', admin.site.urls),
     path('api/', include(api_urlpatterns)),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path('', include('notes.urls')),
-] + router.urls
+) + router.urls
 
 if settings.DEBUG_TOOLBAR_ENABLED:
     import debug_toolbar
-    urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+    urlpatterns += (
+        path('__debug__/', include(debug_toolbar.urls)),
+    )

@@ -51,7 +51,7 @@ class Router:
                 django.urls.include((sub_urls, name), namespace=name),
             ))
 
-        return urls
+        return tuple(urls)
 
     def get_relative_name(self, router):
         """
@@ -119,8 +119,10 @@ class AddNamespaceFilterExpression:
                     f'Cannot resolve relative URL {resolved} in router {self.router}. '
                     f'Router {self.router} is not a sub-router of main matched router {router}.'
                 )
+            root_namespace = request.resolver_match.namespace
+            if root_namespace:
+                name_path = (root_namespace,) + name_path
             resolved = ':'.join([
-                request.resolver_match.namespace,
                 *name_path,
                 resolved[1:],
             ])

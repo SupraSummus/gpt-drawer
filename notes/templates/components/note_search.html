@@ -1,8 +1,0 @@
-{% for note in notes %}
-  <li>
-    <a
-      href="#"
-      hx-get="{% url 'note-selected' notebook_id %}?field_name={{ field_name }}&note_id={{ note.id }}"
-    >{{ note }}</a>
-  </li>
-{% endfor %}

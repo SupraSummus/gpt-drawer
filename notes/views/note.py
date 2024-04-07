@@ -7,7 +7,9 @@ from django.utils import timezone
 from djsfc import Router, get_template_block, parse_template
 
 from ..models import Note, NoteReference
-from ..widgets import NoteChoiceWidget
+from . import note_select
+from .common import get_note
+from .note_select import NoteChoiceWidget
 
 
 router = Router(__name__)
@@ -134,7 +136,6 @@ template_str = '''\
       </p>
 
     </section>
-    {% include 'notes/views/asdf.html' %}
   </main>
 {% endblock %}
 '''
@@ -144,7 +145,7 @@ note_reference_block = get_template_block(template, 'note_reference')
 new_note_reference_block = get_template_block(template, 'new_note_reference')
 generate_references_button_template = get_template_block(template, 'generate_references_button')
 
-router.route_all('asdf/', 'notes.views.asdf')
+router.route_all('select/', note_select.router)
 
 
 @router.route('GET', '<uuid:note_id>/')
@@ -206,7 +207,7 @@ def read(request, note_id):
 def new_note_reference_form(request, note_id):
     note = get_note(request, note_id)
     note_reference = NoteReference(note=note)
-    form = NoteReferenceForm(instance=note_reference, user=request.user)
+    form = NoteReferenceForm(instance=note_reference, request=request)
     return TemplateResponse(request, new_note_reference_block, {
       'note': note,
       'form': form,
@@ -217,7 +218,7 @@ def new_note_reference_form(request, note_id):
 def new_note_reference_save(request, note_id):
     note = get_note(request, note_id)
     note_reference = NoteReference(note=note)
-    form = NoteReferenceForm(request.POST, instance=note_reference, user=request.user)
+    form = NoteReferenceForm(request.POST, instance=note_reference, request=request)
     if form.is_valid():
         form.save()
         return TemplateResponse(request, note_reference_block, {
@@ -250,13 +251,6 @@ def trigger_auto_qa_generation(request, note_id):
     })
 
 
-def get_note(request, note_id):
-    return get_object_or_404(
-        Note.objects.accessible_by_user(request.user),
-        id=note_id,
-    )
-
-
 class NoteReferenceForm(forms.ModelForm):
     target_note = forms.ModelChoiceField(
         queryset=Note.objects.none(),
@@ -267,15 +261,16 @@ class NoteReferenceForm(forms.ModelForm):
         model = NoteReference
         fields = ('target_note',)
 
-    def __init__(self, *args, user, **kwargs):
+    def __init__(self, *args, request, **kwargs):
         super().__init__(*args, **kwargs)
         notebook_id = self.instance.note.notebook_id
         self.fields['target_note'].queryset = Note.objects.accessible_by_user(
-            user,
+            request.user,
         ).filter(
             notebook_id=notebook_id,
         )
         self.fields['target_note'].widget = NoteChoiceWidget(
+            request=request,
             notebook_id=notebook_id,
         )
 
@@ -292,7 +287,7 @@ def note_reference_read(request, note_reference_id):
 @router.route('GET', 'note-reference/<uuid:note_reference_id>/edit/')
 def note_reference_edit(request, note_reference_id):
     note_reference = get_note_reference(request, note_reference_id)
-    form = NoteReferenceForm(instance=note_reference, user=request.user)
+    form = NoteReferenceForm(instance=note_reference, request=request)
     return TemplateResponse(request, note_reference_block, {
       'note_reference': note_reference,
       'editing': True,
@@ -306,7 +301,7 @@ def note_reference_save(request, note_reference_id):
     form = NoteReferenceForm(
         request.POST,
         instance=note_reference,
-        user=request.user,
+        request=request,
     )
     if form.is_valid():
         form.save()
