@@ -88,6 +88,11 @@ class NoteQuerySet(models.QuerySet):
         ).order_by('distance')
 
 
+class NoteState(models.TextChoices):
+    SUGGESTED = 'suggested', _('Suggested')
+    ACTIVE = 'active', _('Active')
+
+
 class Note(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -109,6 +114,12 @@ class Note(models.Model):
     content = models.TextField(
         blank=True,
         verbose_name=_('content'),
+    )
+    state = models.CharField(
+        max_length=20,
+        choices=NoteState.choices,
+        default=NoteState.ACTIVE,
+        verbose_name=_('state'),
     )
     embedding = VectorField(
         dimensions=3072,
@@ -232,11 +243,11 @@ class Alias(models.Model):
 
 
 class ReferenceState(models.TextChoices):
-    # Question was automatically genenerated but we are waiting for the uniqueness check
-    CHECKING_UNIQUENESS = 'checking_uniqueness', _('Checking uniqueness')
-    # Question was automatically genenerated and uniqueness check passed
-    # or the question was manually added or modified
+    SUGGESTED = 'suggested', _('Suggested')
     ACTIVE = 'active', _('Active')
+
+
+NoteReferenceState = ReferenceState
 
 
 class ReferenceQuerySet(models.QuerySet):
@@ -263,21 +274,9 @@ class Reference(models.Model):
         default=ReferenceState.ACTIVE,
         verbose_name=_('state'),
     )
-    question = models.TextField(
-        verbose_name=_('question'),
-        blank=True,
-    )
-    embedding = VectorField(
-        dimensions=3072,
-        verbose_name=_('embedding'),
-        null=True,
-        blank=True,
-    )
     target_note = models.ForeignKey(
         to=Note,
         on_delete=models.PROTECT,
-        null=True,
-        blank=True,
         related_name='references_to',
         verbose_name=_('target note'),
     )
@@ -293,10 +292,12 @@ class Reference(models.Model):
         ordering = ('note', 'target_note')
 
     @property
+    def question(self):
+        return self.note.content
+
+    @property
     def answer(self):
-        if self.target_note:
-            return self.target_note.content
-        return ''
+        return self.target_note.content
 
     @property
     def notebook_id(self):
@@ -308,7 +309,6 @@ class Reference(models.Model):
         if (
             'note' not in exclude and
             'target_note' not in exclude and
-            self.target_note is not None and
             self.target_note.notebook_id != self.note.notebook_id
         ):
             raise models.ValidationError({
@@ -316,15 +316,6 @@ class Reference(models.Model):
                     'The target note must be in the same notebook as the source note.'
                 ),
             }, code='notebook_mismatch')
-
-    def save(self, *args, update_fields=None, **kwargs):
-        super().save(*args, update_fields=update_fields, **kwargs)
-        if (
-            self.embedding is None and
-            (update_fields is None or 'embedding' in update_fields)
-        ):
-            from .tasks import generate_reference_embedding
-            async_task(generate_reference_embedding, reference_id=self.id)
 
 
 NoteReference = Reference

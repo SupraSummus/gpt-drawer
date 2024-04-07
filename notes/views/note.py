@@ -52,107 +52,87 @@ template_str = '''\
     </section>
 
     <section>
-      <h2>QA</h2>
-      <dl>
-        {% for note_reference in note.references.all %}
-          {% block note_reference %}
-            {% if editing %}
-              <form hx-post="{% url ':note_reference_save' note_reference.id %}" hx-target="this" hx-swap="outerHTML">
-                {% csrf_token %}
-                {{ form.as_div }}
-                <div class="grid">
-                  <button type="submit">Save</button>
-                  <button type="reset" hx-get="{% url ':note_reference_read' note_reference.id %}">Cancel</button>
-                </div>
-              </form>
-
-            {% else %}
-              <div hx-target="this" hx-swap="outerHTML">
-
-                <dt>
-                  <p style="white-space: pre-line;">{{ note_reference.question }}</p>
-                </dt>
-
-                <dd>
-                  {% if note_reference.target_note %}
-                    <p>
-                      <a href="{% url 'notes:note:root' note_reference.target_note.id %}">
-                        {{ note_reference.target_note }}
-                      </a>
-                    </p>
-                    <p>{{ note_reference.target_note.content|truncatechars:200 }}</p>
-                  {% else %}
-                    <p>
-                      No answer yet
-                      <a
-                        role="button"
-                        href="{% url 'notes:answer:root' note_reference.id %}"
-                        class="outline"
-                      >Answer in new note</a>
-                    </p>
-                  {% endif %}
-
-                </dd>
-
-                <aside>
-                  <button
-                    hx-get="{% url ':note_reference_edit' note_reference.id %}"
-                    hx-trigger="click"
-                    class="outline"
-                  >Edit</button>
-                  <button
-                    hx-delete="{% url ':note_reference_delete' note_reference.id %}"
-                    hx-confirm="Are you sure?"
-                    class="outline"
-                  >Delete</button>
-                </aside>
-
-                <hr>
-              </div>
-
-            {% endif %}
-          {% endblock %}
-        {% endfor %}
-
-        {% if adding_reference %}
-          {% block new_note_reference %}
-            <form
-              hx-post="{% url ':new_note_reference_save' note.id %}"
-              hx-target="this" hx-swap="outerHTML"
-            >
+      <h2>Further reading</h2>
+      {% for note_reference in note.references.all %}
+        {% block note_reference %}
+          {% if editing %}
+            <form hx-post="{% url ':note_reference_save' note_reference.id %}" hx-target="this" hx-swap="outerHTML">
               {% csrf_token %}
               {{ form.as_div }}
               <div class="grid">
                 <button type="submit">Save</button>
-                <button type="reset" hx-on:click="this.closest('form').remove()">Cancel</button>
+                <button type="reset" hx-get="{% url ':note_reference_read' note_reference.id %}">Cancel</button>
               </div>
             </form>
-          {% endblock %}
-        {% endif %}
 
-        <p hx-target="this" hx-swap="beforebegin">
+          {% else %}
+            <div hx-target="this" hx-swap="outerHTML">
+
+              <p>
+                <a href="{% url 'notes:note:root' note_reference.target_note.id %}">
+                  {{ note_reference.target_note }}
+                </a>
+              </p>
+              <p>{{ note_reference.target_note.content|truncatechars:200 }}</p>
+
+              <aside>
+                <button
+                  hx-get="{% url ':note_reference_edit' note_reference.id %}"
+                  hx-trigger="click"
+                  class="outline"
+                >Edit</button>
+                <button
+                  hx-delete="{% url ':note_reference_delete' note_reference.id %}"
+                  hx-confirm="Are you sure?"
+                  class="outline"
+                >Delete</button>
+              </aside>
+
+              <hr>
+            </div>
+
+          {% endif %}
+        {% endblock %}
+      {% endfor %}
+
+      {% if adding_reference %}
+        {% block new_note_reference %}
+          <form
+            hx-post="{% url ':new_note_reference_save' note.id %}"
+            hx-target="this" hx-swap="outerHTML"
+          >
+            {% csrf_token %}
+            {{ form.as_div }}
+            <div class="grid">
+              <button type="submit">Save</button>
+              <button type="reset" hx-on:click="this.closest('form').remove()">Cancel</button>
+            </div>
+          </form>
+        {% endblock %}
+      {% endif %}
+
+      <p hx-target="this" hx-swap="beforebegin">
+        <button class="outline"
+          hx-get="{% url ':new_note_reference_form' note.id %}"
+          hx-trigger="click"
+        >Add QA entry</button>
+        {% block generate_references_button %}
           <button class="outline"
-            hx-get="{% url ':new_note_reference_form' note.id %}"
-            hx-trigger="click"
-          >Add QA entry</button>
-          {% block generate_references_button %}
-            <button class="outline"
-              hx-target="this"
-              hx-swap="outerHTML"
-              hx-vals='{ "now": "{{ now.isoformat }}" }'
-              {% if note.generating_references %}
-                disabled
-                aria-busy="true"
-                hx-get="{% url ':generate_references_button' note.id %}"
-                hx-trigger="load delay:2s"
-              {% else %}
-                hx-post="{% url ':trigger_auto_qa_generation' note.id %}"
-              {% endif %}
-            >Generate QA</button>
-          {% endblock %}
-        </p>
+            hx-target="this"
+            hx-swap="outerHTML"
+            hx-vals='{ "now": "{{ now.isoformat }}" }'
+            {% if note.generating_references %}
+              disabled
+              aria-busy="true"
+              hx-get="{% url ':generate_references_button' note.id %}"
+              hx-trigger="load delay:2s"
+            {% else %}
+              hx-post="{% url ':trigger_auto_qa_generation' note.id %}"
+            {% endif %}
+          >Generate QA</button>
+        {% endblock %}
+      </p>
 
-      </dl>
     </section>
     {% include 'notes/views/asdf.html' %}
   </main>
@@ -280,12 +260,12 @@ def get_note(request, note_id):
 class NoteReferenceForm(forms.ModelForm):
     target_note = forms.ModelChoiceField(
         queryset=Note.objects.none(),
-        required=False,
+        required=True,
     )
 
     class Meta:
         model = NoteReference
-        fields = ('question', 'target_note')
+        fields = ('target_note',)
 
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)

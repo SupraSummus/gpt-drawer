@@ -62,10 +62,7 @@ template = parse_template(template_str, router)
 @router.route('GET', '<uuid:note_reference_id>/')
 def root(request, note_reference_id):
     note_reference = get_note_reference(request, note_reference_id)
-    if note_reference.answer:
-        suggested_notes = Note.objects.autocomplete_search(note_reference.answer)
-    else:
-        suggested_notes = Note.objects.autocomplete_search(note_reference.question)
+    suggested_notes = Note.objects.autocomplete_search(note_reference.answer)
     return TemplateResponse(request, template, {
         'note_reference': note_reference,
         'suggested_notes': suggested_notes,

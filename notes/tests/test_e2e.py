@@ -9,7 +9,6 @@ from openai.types.chat.chat_completion import ChatCompletion, Choice
 from openai.types.create_embedding_response import CreateEmbeddingResponse, Usage
 from openai.types.embedding import Embedding
 
-from notes.models import ReferenceState
 from notes.openai import openai_client
 
 
@@ -26,7 +25,7 @@ def chat_completion_mock(monkeypatch):
             Choice(
                 message=ChatCompletionMessage(
                     role='assistant',
-                    content='{"questions": ["first question", "second question"]}',
+                    content='{"next": ["first question", "second question"]}',
                 ),
                 finish_reason='stop',
                 index=0,
@@ -72,8 +71,8 @@ def test_generate_references(note, monkeypatch, sync_tasks, chat_completion_mock
     assert not note.generating_references  # we have already finished (sync tasks)
 
     reference = note.references.first()
-    assert reference.state == ReferenceState.ACTIVE
-    assert numpy.allclose(reference.embedding, [0.1] * 3072)
+    target_note = reference.target_note
+    assert numpy.allclose(target_note.embedding, [0.1] * 3072)
 
 
 @pytest.mark.django_db

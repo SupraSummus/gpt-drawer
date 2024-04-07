@@ -24,15 +24,15 @@ def test_note_reference_create_get(user_client, note, notebook_user_permission):
 
 
 @pytest.mark.django_db
-def test_note_reference_create_post(user_client, note, notebook_user_permission):
+def test_note_reference_create_post(user_client, note, notebook_user_permission, other_note):
     response = user_client.post(
         reverse('notes:note:new_note_reference_save', kwargs={'note_id': note.id}),
-        data={'question': 'This is a note reference'},
+        data={'target_note': other_note.id},
     )
     assert response.status_code == 200
     note_reference = response.context['note_reference']
     assert note_reference.note == note
-    assert note_reference.question == 'This is a note reference'
+    assert note_reference.target_note == other_note
 
 
 @pytest.mark.django_db

@@ -17,6 +17,7 @@ class NoteFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Note
 
+    notebook = factory.SubFactory(NotebookFactory)
     title = factory.Sequence(lambda n: f'Test note {n}')
 
 
@@ -30,6 +31,9 @@ class AliasFactory(factory.django.DjangoModelFactory):
 class ReferenceFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Reference
+
+    note = factory.SubFactory(NoteFactory)
+    target_note = factory.SubFactory(NoteFactory, notebook=factory.SelfAttribute('note.notebook'))
 
 
 NoteReferenceFactory = ReferenceFactory

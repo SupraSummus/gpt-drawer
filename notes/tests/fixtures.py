@@ -28,9 +28,10 @@ def note(request, notebook):
 
 
 @pytest.fixture
-def note_reference(request, note):
+def note_reference(request, note, other_note):
     return NoteReferenceFactory(
         note=note,
+        target_note=other_note,
         **getattr(request, 'param', {}),
     )
 
