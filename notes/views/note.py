@@ -1,4 +1,5 @@
 from django import forms
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -113,11 +114,31 @@ template_str = '''\
         {% endblock %}
       {% endif %}
 
+      {% if adding_note %}
+        {% block new_note %}
+          <form
+            hx-post="{% url ':new_note_save' note.id %}"
+            hx-target="this" hx-swap="outerHTML"
+          >
+            {% csrf_token %}
+            {{ form.as_div }}
+            <div class="grid">
+              <button type="submit">Save</button>
+              <button type="reset" hx-on:click="this.closest('form').remove()">Cancel</button>
+            </div>
+          </form>
+        {% endblock %}
+      {% endif %}
+
       <p hx-target="this" hx-swap="beforebegin">
         <button class="outline"
           hx-get="{% url ':new_note_reference_form' note.id %}"
           hx-trigger="click"
-        >Add QA entry</button>
+        >Link note</button>
+        <button class="outline"
+          hx-get="{% url ':new_note_form' note.id %}"
+          hx-trigger="click"
+        >Create note</button>
         {% block generate_references_button %}
           <button class="outline"
             hx-target="this"
@@ -131,7 +152,7 @@ template_str = '''\
             {% else %}
               hx-post="{% url ':trigger_auto_qa_generation' note.id %}"
             {% endif %}
-          >Generate QA</button>
+          >Generate</button>
         {% endblock %}
       </p>
 
@@ -143,6 +164,7 @@ template = parse_template(template_str, router)
 note_block = get_template_block(template, 'note')
 note_reference_block = get_template_block(template, 'note_reference')
 new_note_reference_block = get_template_block(template, 'new_note_reference')
+new_note_block = get_template_block(template, 'new_note')
 generate_references_button_template = get_template_block(template, 'generate_references_button')
 
 router.route_all('select/', note_select.router)
@@ -227,6 +249,38 @@ def new_note_reference_save(request, note_id):
         })
     else:
         return TemplateResponse(request, new_note_reference_block, {
+          'note': note,
+          'form': form,
+        })
+
+
+@router.route('GET', '<uuid:note_id>/new-note')
+def new_note_form(request, note_id):
+    note = get_note(request, note_id)
+    form = NoteForm()
+    return TemplateResponse(request, new_note_block, {
+      'note': note,
+      'form': form,
+    })
+
+
+@router.route('POST', '<uuid:note_id>/new-note')
+@transaction.atomic
+def new_note_save(request, note_id):
+    note = get_note(request, note_id)
+    form = NoteForm(request.POST)
+    if form.is_valid():
+        new_note = form.save(commit=False)
+        new_note.notebook = note.notebook
+        new_note.save()
+        note_reference = NoteReference(note=note, target_note=new_note)
+        note_reference.save()
+        return TemplateResponse(request, note_reference_block, {
+          'note_reference': note_reference,
+          'editing': False,
+        })
+    else:
+        return TemplateResponse(request, new_note_block, {
           'note': note,
           'form': form,
         })
