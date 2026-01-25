@@ -17,7 +17,7 @@ export async function fetchNotebooks(): Promise<Notebook[]> {
 
 export async function fetchNotebook(id: string): Promise<Notebook> {
 	const { data, error } = await apiClient.GET('/api/notebooks/{id}/', {
-		params: { path: { id } }
+		params: { path: { id } },
 	});
 	if (error) throw new Error('Failed to fetch notebook');
 	return data!;
@@ -25,7 +25,7 @@ export async function fetchNotebook(id: string): Promise<Notebook> {
 
 export async function createNotebook(title: string): Promise<Notebook> {
 	const { data, error } = await apiClient.POST('/api/notebooks/', {
-		body: { title } as Notebook
+		body: { title } as Notebook,
 	});
 	if (error) throw new Error('Failed to create notebook');
 	return data!;
@@ -34,7 +34,7 @@ export async function createNotebook(title: string): Promise<Notebook> {
 export async function updateNotebook(id: string, title: string): Promise<Notebook> {
 	const { data, error } = await apiClient.PATCH('/api/notebooks/{id}/', {
 		params: { path: { id } },
-		body: { title }
+		body: { title },
 	});
 	if (error) throw new Error('Failed to update notebook');
 	return data!;
@@ -42,7 +42,7 @@ export async function updateNotebook(id: string, title: string): Promise<Noteboo
 
 export async function deleteNotebook(id: string): Promise<void> {
 	const { error } = await apiClient.DELETE('/api/notebooks/{id}/', {
-		params: { path: { id } }
+		params: { path: { id } },
 	});
 	if (error) throw new Error('Failed to delete notebook');
 }
@@ -54,9 +54,9 @@ export async function fetchNotes(notebookId?: string, search?: string): Promise<
 		params: {
 			query: {
 				notebook_id: notebookId,
-				search
-			}
-		}
+				search,
+			},
+		},
 	});
 	if (error) throw new Error('Failed to fetch notes');
 	return data?.results ?? [];
@@ -64,7 +64,7 @@ export async function fetchNotes(notebookId?: string, search?: string): Promise<
 
 export async function fetchNote(id: string): Promise<Note> {
 	const { data, error } = await apiClient.GET('/api/notes/{id}/', {
-		params: { path: { id } }
+		params: { path: { id } },
 	});
 	if (error) throw new Error('Failed to fetch note');
 	return data!;
@@ -73,10 +73,10 @@ export async function fetchNote(id: string): Promise<Note> {
 export async function createNote(
 	notebookId: string,
 	title?: string,
-	content?: string
+	content?: string,
 ): Promise<Note> {
 	const { data, error } = await apiClient.POST('/api/notes/', {
-		body: { notebook_id: notebookId, title, content } as Note
+		body: { notebook_id: notebookId, title, content } as Note,
 	});
 	if (error) throw new Error('Failed to create note');
 	return data!;
@@ -84,11 +84,11 @@ export async function createNote(
 
 export async function updateNote(
 	id: string,
-	updates: { title?: string; content?: string }
+	updates: { title?: string; content?: string },
 ): Promise<Note> {
 	const { data, error } = await apiClient.PATCH('/api/notes/{id}/', {
 		params: { path: { id } },
-		body: updates as Note
+		body: updates as Note,
 	});
 	if (error) throw new Error('Failed to update note');
 	return data!;
@@ -96,7 +96,7 @@ export async function updateNote(
 
 export async function deleteNote(id: string): Promise<void> {
 	const { error } = await apiClient.DELETE('/api/notes/{id}/', {
-		params: { path: { id } }
+		params: { path: { id } },
 	});
 	if (error) throw new Error('Failed to delete note');
 }
@@ -106,7 +106,7 @@ export async function deleteNote(id: string): Promise<void> {
 export async function createAlias(noteId: string, title: string): Promise<Alias> {
 	const { data, error } = await apiClient.POST('/api/notes/{note_pk}/aliases/', {
 		params: { path: { note_pk: noteId } },
-		body: { title } as Alias
+		body: { title } as Alias,
 	});
 	if (error) throw new Error('Failed to create alias');
 	return data!;
@@ -114,7 +114,7 @@ export async function createAlias(noteId: string, title: string): Promise<Alias>
 
 export async function deleteAlias(noteId: string, aliasId: string): Promise<void> {
 	const { error } = await apiClient.DELETE('/api/notes/{note_pk}/aliases/{id}/', {
-		params: { path: { note_pk: noteId, id: aliasId } }
+		params: { path: { note_pk: noteId, id: aliasId } },
 	});
 	if (error) throw new Error('Failed to delete alias');
 }
@@ -124,7 +124,7 @@ export async function deleteAlias(noteId: string, aliasId: string): Promise<void
 export async function createReference(noteId: string, targetNoteId: string): Promise<Reference> {
 	const { data, error } = await apiClient.POST('/api/notes/{note_pk}/references/', {
 		params: { path: { note_pk: noteId } },
-		body: { target_note_id: targetNoteId } as Reference
+		body: { target_note_id: targetNoteId } as Reference,
 	});
 	if (error) throw new Error('Failed to create reference');
 	return data!;
@@ -132,7 +132,7 @@ export async function createReference(noteId: string, targetNoteId: string): Pro
 
 export async function deleteReference(noteId: string, referenceId: string): Promise<void> {
 	const { error } = await apiClient.DELETE('/api/notes/{note_pk}/references/{id}/', {
-		params: { path: { note_pk: noteId, id: referenceId } }
+		params: { path: { note_pk: noteId, id: referenceId } },
 	});
 	if (error) throw new Error('Failed to delete reference');
 }

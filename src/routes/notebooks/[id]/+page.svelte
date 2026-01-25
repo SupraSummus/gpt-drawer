@@ -9,7 +9,7 @@
 		createNote,
 		deleteNote,
 		type Notebook,
-		type Note
+		type Note,
 	} from '$lib/notes';
 
 	let notebook = $state<Notebook | null>(null);

@@ -3,7 +3,7 @@ import {
 	getStoredToken,
 	login as apiLogin,
 	logout as apiLogout,
-	type AuthState
+	type AuthState,
 } from './api';
 
 function createAuthStore() {
@@ -43,7 +43,7 @@ function createAuthStore() {
 		async logout() {
 			await apiLogout();
 			state = { user: null, token: null };
-		}
+		},
 	};
 }
 

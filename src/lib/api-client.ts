@@ -19,7 +19,7 @@ function getBaseUrl(): string {
 export function createApiClient(customFetch?: typeof fetch): Client<paths> {
 	const client = createClient<paths>({
 		baseUrl: getBaseUrl(),
-		fetch: customFetch
+		fetch: customFetch,
 	});
 
 	client.use({
@@ -29,7 +29,7 @@ export function createApiClient(customFetch?: typeof fetch): Client<paths> {
 				request.headers.set('Authorization', `Token ${token}`);
 			}
 			return request;
-		}
+		},
 	});
 
 	return client;

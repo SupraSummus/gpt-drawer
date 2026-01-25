@@ -8,7 +8,7 @@ vi.mock('./api-client', async () => {
 	const { createApiClient } = await vi.importActual<typeof import('./api-client')>('./api-client');
 	return {
 		apiClient: createApiClient(mockFetchFn),
-		createApiClient
+		createApiClient,
 	};
 });
 
@@ -26,7 +26,7 @@ const localStorageMock = (() => {
 		},
 		clear: () => {
 			store = {};
-		}
+		},
 	};
 })();
 
@@ -115,7 +115,7 @@ describe('api auth', () => {
 			const mockUser = { id: '123', username: 'testuser', email: 'test@test.com' };
 			const fetchSpy = mockFetchSequence(
 				new Response(JSON.stringify({ token: 'new-token' }), { status: 200 }),
-				new Response(JSON.stringify(mockUser), { status: 200 })
+				new Response(JSON.stringify(mockUser), { status: 200 }),
 			);
 
 			const result = await login('testuser', 'password123');
@@ -136,7 +136,7 @@ describe('api auth', () => {
 			const mockUser = { id: '123', username: 'user', email: 'user@test.com' };
 			const fetchSpy = mockFetchSequence(
 				new Response(JSON.stringify({ token: 'token' }), { status: 200 }),
-				new Response(JSON.stringify(mockUser), { status: 200 })
+				new Response(JSON.stringify(mockUser), { status: 200 }),
 			);
 
 			await login('user', 'pass');

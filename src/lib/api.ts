@@ -48,8 +48,8 @@ export async function fetchCurrentUser(): Promise<User | null> {
 export async function login(username: string, password: string): Promise<AuthState> {
 	const { data, error } = await apiClient.POST('/api/auth/login/', {
 		headers: {
-			Authorization: 'Basic ' + btoa(`${username}:${password}`)
-		}
+			Authorization: 'Basic ' + btoa(`${username}:${password}`),
+		},
 	});
 
 	if (error || !data) {

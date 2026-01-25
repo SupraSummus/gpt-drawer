@@ -11,7 +11,7 @@
 		deleteAlias,
 		createReference,
 		deleteReference,
-		type Note
+		type Note,
 	} from '$lib/notes';
 
 	let note = $state<Note | null>(null);
