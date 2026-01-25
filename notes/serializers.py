@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_nested.relations import NestedHyperlinkedIdentityField
 
-from .models import Alias, Note, Notebook, Reference
+from .models import Alias, Note, Notebook, NoteVersion, Reference
 
 
 class NotebookSerializer(serializers.ModelSerializer):
@@ -63,6 +63,21 @@ class AliasSerializer(serializers.ModelSerializer):
         )
 
 
+class NoteVersionSerializer(serializers.ModelSerializer):
+    note_id = serializers.UUIDField(read_only=True)
+
+    class Meta:
+        model = NoteVersion
+        fields = (
+            'note_id',
+            'created_at',
+            'is_active',
+            'title',
+            'content',
+        )
+        read_only_fields = fields
+
+
 class ReferenceSerializer(serializers.ModelSerializer):
     _detail_url = NestedHyperlinkedIdentityField(
         view_name='api:note-reference-detail',
@@ -89,6 +104,11 @@ class ReferenceSerializer(serializers.ModelSerializer):
 
 
 class NoteSerializer(NoteShortSerializer):
+    _versions_url = serializers.HyperlinkedIdentityField(
+        view_name='api:note-version-list',
+        lookup_field='pk',
+        lookup_url_kwarg='note_pk',
+    )
     _aliases_url = serializers.HyperlinkedIdentityField(
         view_name='api:note-alias-list',
         lookup_field='pk',
@@ -111,6 +131,7 @@ class NoteSerializer(NoteShortSerializer):
         model = Note
         fields = (
             *NoteShortSerializer.Meta.fields,
+            '_versions_url',
             '_aliases_url',
             '_references_url',
             'notebook_id',

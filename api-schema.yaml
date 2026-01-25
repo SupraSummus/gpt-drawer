@@ -1127,6 +1127,35 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/notes/{note_pk}/versions/:
+    get:
+      operationId: notes_versions_list
+      parameters:
+      - in: path
+        name: note_pk
+        schema:
+          type: string
+          format: uuid
+          title: Identifier
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - notes
+      security:
+      - knoxApiToken: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNoteVersionList'
+          description: ''
   /api/notes/{id}/:
     get:
       operationId: notes_retrieve
@@ -1297,7 +1326,12 @@ components:
           title: Identifier
         title:
           type: string
-          maxLength: 64
+          default: ''
+        _versions_url:
+          type: string
+          format: uri
+          readOnly: true
+          title: ' versions url'
         _aliases_url:
           type: string
           format: uri
@@ -1314,6 +1348,7 @@ components:
           title: Identifier
         content:
           type: string
+          default: ''
         aliases:
           type: array
           items:
@@ -1326,6 +1361,7 @@ components:
       - _aliases_url
       - _detail_url
       - _references_url
+      - _versions_url
       - aliases
       - id
       - notebook_id
@@ -1345,10 +1381,36 @@ components:
           title: Identifier
         title:
           type: string
-          maxLength: 64
+          default: ''
       required:
       - _detail_url
       - id
+    NoteVersion:
+      type: object
+      properties:
+        note_id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        content:
+          type: string
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - is_active
+      - note_id
+      - title
     Notebook:
       type: object
       properties:
@@ -1415,6 +1477,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Note'
+    PaginatedNoteVersionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/NoteVersion'
     PaginatedNotebookList:
       type: object
       required:
@@ -1528,7 +1613,12 @@ components:
           title: Identifier
         title:
           type: string
-          maxLength: 64
+          default: ''
+        _versions_url:
+          type: string
+          format: uri
+          readOnly: true
+          title: ' versions url'
         _aliases_url:
           type: string
           format: uri
@@ -1545,6 +1635,7 @@ components:
           title: Identifier
         content:
           type: string
+          default: ''
         aliases:
           type: array
           items:

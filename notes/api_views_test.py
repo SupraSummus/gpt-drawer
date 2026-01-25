@@ -162,3 +162,21 @@ def test_note_update_reference_to_other_notebook(user, user_client, user_noteboo
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
     assert 'same notebook' in response.data['references'][0].lower()
+
+
+@pytest.mark.django_db
+def test_note_versions_list(user_client, user_notebook):
+    note = NoteFactory(notebook=user_notebook, title='v1', content='content v1')
+    note.create_version(title='v2', content='content v2')
+
+    response = user_client.get(
+        reverse('api:note-version-list', args=[note.id]),
+    )
+    assert response.status_code == status.HTTP_200_OK, response.content
+
+    versions = response.data['results']
+    assert len(versions) == 2
+    assert versions[0]['title'] == 'v2'
+    assert versions[0]['is_active'] is True
+    assert versions[1]['title'] == 'v1'
+    assert versions[1]['is_active'] is False

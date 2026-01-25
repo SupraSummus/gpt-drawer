@@ -350,6 +350,22 @@ export interface paths {
         patch: operations["notes_references_partial_update"];
         trace?: never;
     };
+    "/api/notes/{note_pk}/versions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["notes_versions_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notes/{id}/": {
         parameters: {
             query?: never;
@@ -403,7 +419,13 @@ export interface components {
              * Format: uuid
              */
             readonly id: string;
-            title?: string;
+            /** @default  */
+            title: string;
+            /**
+             * versions url
+             * Format: uri
+             */
+            readonly _versions_url: string;
             /**
              * aliases url
              * Format: uri
@@ -419,7 +441,8 @@ export interface components {
              * Format: uuid
              */
             notebook_id: string;
-            content?: string;
+            /** @default  */
+            content: string;
             aliases: components["schemas"]["Alias"][];
             references: components["schemas"]["Reference"][];
         };
@@ -434,7 +457,17 @@ export interface components {
              * Format: uuid
              */
             readonly id: string;
-            title?: string;
+            /** @default  */
+            title: string;
+        };
+        NoteVersion: {
+            /** Format: uuid */
+            readonly note_id: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            readonly is_active: boolean;
+            readonly title: string;
+            readonly content: string;
         };
         Notebook: {
             /**
@@ -478,6 +511,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Note"][];
+        };
+        PaginatedNoteVersionList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["NoteVersion"][];
         };
         PaginatedNotebookList: {
             /** @example 123 */
@@ -553,7 +601,13 @@ export interface components {
              * Format: uuid
              */
             readonly id?: string;
-            title?: string;
+            /** @default  */
+            title: string;
+            /**
+             * versions url
+             * Format: uri
+             */
+            readonly _versions_url?: string;
             /**
              * aliases url
              * Format: uri
@@ -569,7 +623,8 @@ export interface components {
              * Format: uuid
              */
             notebook_id?: string;
-            content?: string;
+            /** @default  */
+            content: string;
             aliases?: components["schemas"]["Alias"][];
             references?: components["schemas"]["Reference"][];
         };
@@ -1717,6 +1772,30 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Reference"];
+                };
+            };
+        };
+    };
+    notes_versions_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path: {
+                note_pk: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedNoteVersionList"];
                 };
             };
         };

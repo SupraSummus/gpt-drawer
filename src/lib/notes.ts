@@ -88,7 +88,7 @@ export async function updateNote(
 ): Promise<Note> {
 	const { data, error } = await apiClient.PATCH('/api/notes/{id}/', {
 		params: { path: { id } },
-		body: updates
+		body: updates as Note
 	});
 	if (error) throw new Error('Failed to update note');
 	return data!;

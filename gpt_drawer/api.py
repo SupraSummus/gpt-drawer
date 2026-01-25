@@ -11,6 +11,7 @@ router.register('notes', notes_api_views.NoteViewSet, basename='note')
 notes_router = NestedDefaultRouter(router, 'notes', lookup='note')
 notes_router.register('aliases', notes_api_views.AliasViewSet, basename='note-alias')
 notes_router.register('references', notes_api_views.ReferenceViewSet, basename='note-reference')
+notes_router.register('versions', notes_api_views.NoteVersionViewSet, basename='note-version')
 
 urlpatterns = ([
     path(r'', include(router.urls)),

@@ -1,10 +1,13 @@
 import django_filters
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.mixins import ListModelMixin
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from .models import Alias, Note, Notebook, Reference
-from .serializers import AliasSerializer, NotebookSerializer, NoteSerializer, ReferenceSerializer
+from .models import Alias, Note, Notebook, NoteVersion, Reference
+from .serializers import (
+    AliasSerializer, NotebookSerializer, NoteSerializer, NoteVersionSerializer, ReferenceSerializer,
+)
 
 
 class NotebookViewSet(ModelViewSet):
@@ -77,3 +80,11 @@ class ReferenceViewSet(InNoteViewSetMixin, ModelViewSet):
 
     def get_queryset(self):
         return self.note.references
+
+
+class NoteVersionViewSet(InNoteViewSetMixin, ListModelMixin, GenericViewSet):
+    serializer_class = NoteVersionSerializer
+    queryset = NoteVersion.objects.none()
+
+    def get_queryset(self):
+        return self.note.versions.all()
