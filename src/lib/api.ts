@@ -1,10 +1,7 @@
-const API_BASE = '/api';
+import { apiClient } from './api-client';
+import type { components } from './api-schema';
 
-export interface User {
-	id: string;
-	username: string;
-	email: string;
-}
+export type User = components['schemas']['User'];
 
 export interface AuthState {
 	user: User | null;
@@ -38,31 +35,27 @@ export async function fetchCurrentUser(): Promise<User | null> {
 		return null;
 	}
 
-	const response = await fetch(`${API_BASE}/auth/users/me/`, {
-		headers: getAuthHeaders()
-	});
+	const { data, error, response } = await apiClient.GET('/api/auth/users/me/');
 
-	if (!response.ok) {
+	if (error || !response.ok) {
 		setStoredToken(null);
 		return null;
 	}
 
-	return await response.json();
+	return data ?? null;
 }
 
 export async function login(username: string, password: string): Promise<AuthState> {
-	const response = await fetch(`${API_BASE}/auth/login/`, {
-		method: 'POST',
+	const { data, error } = await apiClient.POST('/api/auth/login/', {
 		headers: {
 			Authorization: 'Basic ' + btoa(`${username}:${password}`)
 		}
 	});
 
-	if (!response.ok) {
+	if (error || !data) {
 		throw new Error('Invalid credentials');
 	}
 
-	const data = await response.json();
 	const token = data.token;
 	setStoredToken(token);
 
@@ -71,12 +64,9 @@ export async function login(username: string, password: string): Promise<AuthSta
 }
 
 export async function logout(): Promise<void> {
-	const headers = getAuthHeaders();
-	if (headers.Authorization) {
-		await fetch(`${API_BASE}/auth/logout/`, {
-			method: 'POST',
-			headers
-		});
+	const token = getStoredToken();
+	if (token) {
+		await apiClient.POST('/api/auth/logout/');
 	}
 	setStoredToken(null);
 }

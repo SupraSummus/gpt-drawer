@@ -1,11 +1,26 @@
-# backend
+# check before committing
 
 ```sh
 poetry run flake8
 poetry run pytest
 poetry run ./manage.py check
-poetry run ./manage.py makemigrations
+poetry run ./manage.py makemigrations --check --dry-run
+pnpm check
+pnpm lint
+pnpm test
 ```
+
+some commands to fix issues:
+
+```sh
+poetry run isort .
+poetry run ./manage.py makemigrations
+pnpm format
+```
+
+# testing
+
+Tests are super important! They need to be readable.
 
 tests style:
 
@@ -13,13 +28,14 @@ tests style:
 - place tests next to tested code using `_test.py` suffix: `notes/models.py` -> `notes/models_test.py`
 - fixtures and factories go in the test module for the data's origin (e.g., User factories in `users/models_test.py`, Note factories in `notes/models_test.py`)
 
-# frontend
+# api schema
+
+we keep frontend and backend in sync by:
 
 ```sh
+poetry run ./manage.py spectacular --file api-schema.yaml --lang en --fail-on-warn
+pnpm generate-api-types
 pnpm check
-pnpm lint
-pnpm format
-pnpm test
 ```
 
 # architecture, design

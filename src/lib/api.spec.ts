@@ -1,4 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Hoist mock function so it can be used in vi.mock
+const mockFetchFn = vi.hoisted(() => vi.fn());
+
+// Mock api-client to use our mocked fetch
+vi.mock('./api-client', async () => {
+	const { createApiClient } = await vi.importActual<typeof import('./api-client')>('./api-client');
+	return {
+		apiClient: createApiClient(mockFetchFn),
+		createApiClient
+	};
+});
+
 import { getAuthHeaders, getStoredToken, login, logout, fetchCurrentUser } from './api';
 
 const localStorageMock = (() => {
@@ -19,9 +32,23 @@ const localStorageMock = (() => {
 
 vi.stubGlobal('localStorage', localStorageMock);
 
+function mockFetch(response: Response) {
+	mockFetchFn.mockResolvedValue(response);
+	return mockFetchFn;
+}
+
+function mockFetchSequence(...responses: Response[]) {
+	let callIndex = 0;
+	mockFetchFn.mockImplementation(async () => {
+		return responses[callIndex++];
+	});
+	return mockFetchFn;
+}
+
 describe('api auth', () => {
 	beforeEach(() => {
 		localStorageMock.clear();
+		mockFetchFn.mockReset();
 	});
 
 	afterEach(() => {
@@ -63,21 +90,18 @@ describe('api auth', () => {
 		it('fetches user from /users/me/', async () => {
 			localStorage.setItem('authToken', 'test-token');
 			const mockUser = { id: '123', username: 'testuser', email: 'test@test.com' };
-			const fetchSpy = vi
-				.spyOn(globalThis, 'fetch')
-				.mockResolvedValue(new Response(JSON.stringify(mockUser), { status: 200 }));
+			const fetchSpy = mockFetch(new Response(JSON.stringify(mockUser), { status: 200 }));
 
 			const user = await fetchCurrentUser();
 
 			expect(user).toEqual(mockUser);
-			expect(fetchSpy).toHaveBeenCalledWith('/api/auth/users/me/', {
-				headers: { Authorization: 'Token test-token' }
-			});
+			const request = fetchSpy.mock.calls[0][0] as Request;
+			expect(request.url).toBe('http://localhost/api/auth/users/me/');
 		});
 
 		it('clears token and returns null on error', async () => {
 			localStorage.setItem('authToken', 'invalid-token');
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 401 }));
+			mockFetch(new Response(null, { status: 401 }));
 
 			const user = await fetchCurrentUser();
 
@@ -89,12 +113,10 @@ describe('api auth', () => {
 	describe('login', () => {
 		it('stores token and fetches user on success', async () => {
 			const mockUser = { id: '123', username: 'testuser', email: 'test@test.com' };
-			const fetchSpy = vi
-				.spyOn(globalThis, 'fetch')
-				.mockResolvedValueOnce(
-					new Response(JSON.stringify({ token: 'new-token' }), { status: 200 })
-				)
-				.mockResolvedValueOnce(new Response(JSON.stringify(mockUser), { status: 200 }));
+			const fetchSpy = mockFetchSequence(
+				new Response(JSON.stringify({ token: 'new-token' }), { status: 200 }),
+				new Response(JSON.stringify(mockUser), { status: 200 })
+			);
 
 			const result = await login('testuser', 'password123');
 
@@ -105,31 +127,31 @@ describe('api auth', () => {
 		});
 
 		it('throws on invalid credentials', async () => {
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 401 }));
+			mockFetch(new Response(null, { status: 401 }));
 
 			await expect(login('bad', 'creds')).rejects.toThrow('Invalid credentials');
 		});
 
 		it('sends Basic auth header', async () => {
 			const mockUser = { id: '123', username: 'user', email: 'user@test.com' };
-			const fetchSpy = vi
-				.spyOn(globalThis, 'fetch')
-				.mockResolvedValueOnce(new Response(JSON.stringify({ token: 'token' }), { status: 200 }))
-				.mockResolvedValueOnce(new Response(JSON.stringify(mockUser), { status: 200 }));
+			const fetchSpy = mockFetchSequence(
+				new Response(JSON.stringify({ token: 'token' }), { status: 200 }),
+				new Response(JSON.stringify(mockUser), { status: 200 })
+			);
 
 			await login('user', 'pass');
 
-			expect(fetchSpy).toHaveBeenNthCalledWith(1, '/api/auth/login/', {
-				method: 'POST',
-				headers: { Authorization: 'Basic ' + btoa('user:pass') }
-			});
+			const request = fetchSpy.mock.calls[0][0] as Request;
+			expect(request.url).toBe('http://localhost/api/auth/login/');
+			expect(request.method).toBe('POST');
+			expect(request.headers.get('Authorization')).toBe('Basic ' + btoa('user:pass'));
 		});
 	});
 
 	describe('logout', () => {
 		it('clears stored token', async () => {
 			localStorage.setItem('authToken', 'test-token');
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+			mockFetch(new Response(null, { status: 204 }));
 
 			await logout();
 
@@ -138,16 +160,14 @@ describe('api auth', () => {
 
 		it('calls logout endpoint with token', async () => {
 			localStorage.setItem('authToken', 'test-token');
-			const fetchSpy = vi
-				.spyOn(globalThis, 'fetch')
-				.mockResolvedValue(new Response(null, { status: 204 }));
+			const fetchSpy = mockFetch(new Response(null, { status: 204 }));
 
 			await logout();
 
-			expect(fetchSpy).toHaveBeenCalledWith('/api/auth/logout/', {
-				method: 'POST',
-				headers: { Authorization: 'Token test-token' }
-			});
+			const request = fetchSpy.mock.calls[0][0] as Request;
+			expect(request.url).toBe('http://localhost/api/auth/logout/');
+			expect(request.method).toBe('POST');
+			expect(request.headers.get('Authorization')).toBe('Token test-token');
 		});
 
 		it('skips fetch when not authenticated', async () => {
