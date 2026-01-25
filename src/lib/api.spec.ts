@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getAuthHeaders, getStoredAuth, login, logout } from './api';
+import { getAuthHeaders, getStoredToken, login, logout, fetchCurrentUser } from './api';
 
 const localStorageMock = (() => {
 	let store: Record<string, string> = {};
@@ -28,20 +28,17 @@ describe('api auth', () => {
 		vi.restoreAllMocks();
 	});
 
-	describe('getStoredAuth', () => {
-		it('returns null when no auth stored', () => {
-			const auth = getStoredAuth();
-			expect(auth.user).toBeNull();
-			expect(auth.token).toBeNull();
+	describe('getStoredToken', () => {
+		it('returns null when no token stored', () => {
+			const token = getStoredToken();
+			expect(token).toBeNull();
 		});
 
-		it('returns stored auth', () => {
+		it('returns stored token', () => {
 			localStorage.setItem('authToken', 'test-token');
-			localStorage.setItem('authUser', JSON.stringify({ username: 'testuser' }));
 
-			const auth = getStoredAuth();
-			expect(auth.token).toBe('test-token');
-			expect(auth.user?.username).toBe('testuser');
+			const token = getStoredToken();
+			expect(token).toBe('test-token');
 		});
 	});
 
@@ -52,23 +49,59 @@ describe('api auth', () => {
 
 		it('returns Authorization header when authenticated', () => {
 			localStorage.setItem('authToken', 'test-token');
-			localStorage.setItem('authUser', JSON.stringify({ username: 'testuser' }));
 
 			expect(getAuthHeaders()).toEqual({ Authorization: 'Token test-token' });
 		});
 	});
 
+	describe('fetchCurrentUser', () => {
+		it('returns null when no token', async () => {
+			const user = await fetchCurrentUser();
+			expect(user).toBeNull();
+		});
+
+		it('fetches user from /users/me/', async () => {
+			localStorage.setItem('authToken', 'test-token');
+			const mockUser = { id: '123', username: 'testuser', email: 'test@test.com' };
+			const fetchSpy = vi
+				.spyOn(globalThis, 'fetch')
+				.mockResolvedValue(new Response(JSON.stringify(mockUser), { status: 200 }));
+
+			const user = await fetchCurrentUser();
+
+			expect(user).toEqual(mockUser);
+			expect(fetchSpy).toHaveBeenCalledWith('/api/auth/users/me/', {
+				headers: { Authorization: 'Token test-token' }
+			});
+		});
+
+		it('clears token and returns null on error', async () => {
+			localStorage.setItem('authToken', 'invalid-token');
+			vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 401 }));
+
+			const user = await fetchCurrentUser();
+
+			expect(user).toBeNull();
+			expect(localStorage.getItem('authToken')).toBeNull();
+		});
+	});
+
 	describe('login', () => {
-		it('stores token and user on success', async () => {
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-				new Response(JSON.stringify({ token: 'new-token' }), { status: 200 })
-			);
+		it('stores token and fetches user on success', async () => {
+			const mockUser = { id: '123', username: 'testuser', email: 'test@test.com' };
+			const fetchSpy = vi
+				.spyOn(globalThis, 'fetch')
+				.mockResolvedValueOnce(
+					new Response(JSON.stringify({ token: 'new-token' }), { status: 200 })
+				)
+				.mockResolvedValueOnce(new Response(JSON.stringify(mockUser), { status: 200 }));
 
 			const result = await login('testuser', 'password123');
 
 			expect(result.token).toBe('new-token');
-			expect(result.user?.username).toBe('testuser');
+			expect(result.user).toEqual(mockUser);
 			expect(localStorage.getItem('authToken')).toBe('new-token');
+			expect(fetchSpy).toHaveBeenCalledTimes(2);
 		});
 
 		it('throws on invalid credentials', async () => {
@@ -78,13 +111,15 @@ describe('api auth', () => {
 		});
 
 		it('sends Basic auth header', async () => {
+			const mockUser = { id: '123', username: 'user', email: 'user@test.com' };
 			const fetchSpy = vi
 				.spyOn(globalThis, 'fetch')
-				.mockResolvedValue(new Response(JSON.stringify({ token: 'token' }), { status: 200 }));
+				.mockResolvedValueOnce(new Response(JSON.stringify({ token: 'token' }), { status: 200 }))
+				.mockResolvedValueOnce(new Response(JSON.stringify(mockUser), { status: 200 }));
 
 			await login('user', 'pass');
 
-			expect(fetchSpy).toHaveBeenCalledWith('/api/auth/login/', {
+			expect(fetchSpy).toHaveBeenNthCalledWith(1, '/api/auth/login/', {
 				method: 'POST',
 				headers: { Authorization: 'Basic ' + btoa('user:pass') }
 			});
@@ -92,20 +127,17 @@ describe('api auth', () => {
 	});
 
 	describe('logout', () => {
-		it('clears stored auth', async () => {
+		it('clears stored token', async () => {
 			localStorage.setItem('authToken', 'test-token');
-			localStorage.setItem('authUser', JSON.stringify({ username: 'testuser' }));
 			vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
 
 			await logout();
 
 			expect(localStorage.getItem('authToken')).toBeNull();
-			expect(localStorage.getItem('authUser')).toBeNull();
 		});
 
 		it('calls logout endpoint with token', async () => {
 			localStorage.setItem('authToken', 'test-token');
-			localStorage.setItem('authUser', JSON.stringify({ username: 'testuser' }));
 			const fetchSpy = vi
 				.spyOn(globalThis, 'fetch')
 				.mockResolvedValue(new Response(null, { status: 204 }));

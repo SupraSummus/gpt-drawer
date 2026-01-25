@@ -1,7 +1,9 @@
 const API_BASE = '/api';
 
 export interface User {
+	id: string;
 	username: string;
+	email: string;
 }
 
 export interface AuthState {
@@ -9,30 +11,43 @@ export interface AuthState {
 	token: string | null;
 }
 
-function getStoredAuth(): AuthState {
+function getStoredToken(): string | null {
 	if (typeof localStorage === 'undefined') {
-		return { user: null, token: null };
+		return null;
 	}
-	const token = localStorage.getItem('authToken');
-	const userJson = localStorage.getItem('authUser');
-	const user = userJson ? JSON.parse(userJson) : null;
-	return { user, token };
+	return localStorage.getItem('authToken');
 }
 
-function setStoredAuth(user: User | null, token: string | null) {
+function setStoredToken(token: string | null) {
 	if (typeof localStorage === 'undefined') return;
-	if (token && user) {
+	if (token) {
 		localStorage.setItem('authToken', token);
-		localStorage.setItem('authUser', JSON.stringify(user));
 	} else {
 		localStorage.removeItem('authToken');
-		localStorage.removeItem('authUser');
 	}
 }
 
 export function getAuthHeaders(): Record<string, string> {
-	const { token } = getStoredAuth();
+	const token = getStoredToken();
 	return token ? { Authorization: `Token ${token}` } : {};
+}
+
+export async function fetchCurrentUser(): Promise<User | null> {
+	const token = getStoredToken();
+	if (!token) {
+		return null;
+	}
+
+	const response = await fetch(`${API_BASE}/auth/users/me/`, {
+		headers: getAuthHeaders()
+	});
+
+	if (!response.ok) {
+		setStoredToken(null);
+		return null;
+	}
+
+	return await response.json();
 }
 
 export async function login(username: string, password: string): Promise<AuthState> {
@@ -48,9 +63,10 @@ export async function login(username: string, password: string): Promise<AuthSta
 	}
 
 	const data = await response.json();
-	const user: User = { username };
 	const token = data.token;
-	setStoredAuth(user, token);
+	setStoredToken(token);
+
+	const user = await fetchCurrentUser();
 	return { user, token };
 }
 
@@ -62,7 +78,7 @@ export async function logout(): Promise<void> {
 			headers
 		});
 	}
-	setStoredAuth(null, null);
+	setStoredToken(null);
 }
 
-export { getStoredAuth };
+export { getStoredToken };

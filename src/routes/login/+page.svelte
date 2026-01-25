@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { auth } from '$lib/auth.svelte';
 
 	let username = $state('');
@@ -14,7 +15,7 @@
 
 		try {
 			await auth.login(username, password);
-			goto('/');
+			goto(resolve('/'));
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Login failed';
 		} finally {

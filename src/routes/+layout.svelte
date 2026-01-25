@@ -3,32 +3,37 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { auth } from '$lib/auth.svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 
 	let { children } = $props();
 
 	async function handleLogout() {
 		await auth.logout();
-		goto('/login');
+		goto(resolve('/login'));
 	}
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<header>
-	<nav>
-		<a href="/">Home</a>
-		{#if auth.isAuthenticated}
-			<span>Welcome, {auth.user?.username}</span>
-			<button onclick={handleLogout}>Logout</button>
-		{:else}
-			<a href="/login">Login</a>
-		{/if}
-	</nav>
-</header>
+{#if !auth.isInitialized}
+	<div class="loading">Loading...</div>
+{:else}
+	<header>
+		<nav>
+			<a href={resolve('/')}>Home</a>
+			{#if auth.isAuthenticated}
+				<span>Welcome, {auth.user?.username}</span>
+				<button onclick={handleLogout}>Logout</button>
+			{:else}
+				<a href={resolve('/login')}>Login</a>
+			{/if}
+		</nav>
+	</header>
 
-<main>
-	{@render children()}
-</main>
+	<main>
+		{@render children()}
+	</main>
+{/if}
 
 <style>
 	header {
@@ -66,5 +71,14 @@
 		max-width: 1200px;
 		margin: 0 auto;
 		padding: 1rem;
+	}
+
+	.loading {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100vh;
+		font-size: 1.2rem;
+		color: #666;
 	}
 </style>
