@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_q.tasks import async_task
 from pgvector.django import CosineDistance, VectorField
@@ -75,16 +76,27 @@ class NoteQuerySet(models.QuerySet):
     def accessible_by_user(self, user):
         return self.filter(notebook__user_permissions__user=user)
 
+    def with_active_version(self):
+        return self.prefetch_related(
+            models.Prefetch(
+                'versions',
+                queryset=NoteVersion.objects.filter(is_active=True),
+                to_attr='_active_versions',
+            )
+        )
+
     def autocomplete_search(self, query):
         return self.filter(
-            Q(title__istartswith=query) |
+            Q(versions__is_active=True, versions__title__istartswith=query) |
             Q(aliases__title__istartswith=query)
         )
 
     def embedding_search(self, query):
         embedding = generate_embedding(query)
-        return self.annotate(
-            distance=CosineDistance('embedding', embedding),
+        return self.filter(
+            versions__is_active=True,
+        ).annotate(
+            distance=CosineDistance('versions__embedding', embedding),
         ).order_by('distance')
 
 
@@ -106,12 +118,12 @@ class Note(models.Model):
         related_name='notes',
         verbose_name=_('notebook'),
     )
-    title = models.CharField(
+    _title = models.CharField(  # TODO - dont use, kept for data
         max_length=64,
         blank=True,
         verbose_name=_('title'),
     )
-    content = models.TextField(
+    _content = models.TextField(  # TODO - dont use, kept for data
         blank=True,
         verbose_name=_('content'),
     )
@@ -120,12 +132,6 @@ class Note(models.Model):
         choices=NoteState.choices,
         default=NoteState.ACTIVE,
         verbose_name=_('state'),
-    )
-    embedding = VectorField(
-        dimensions=3072,
-        verbose_name=_('embedding'),
-        null=True,
-        blank=True,
     )
     generating_references = models.BooleanField(
         default=False,
@@ -146,7 +152,29 @@ class Note(models.Model):
     class Meta:
         verbose_name = _('note')
         verbose_name_plural = _('notes')
-        ordering = ('notebook', 'title', 'id')
+        ordering = ('notebook', 'id')
+
+    @property
+    def active_version(self):
+        # Use prefetched data if available
+        if hasattr(self, '_active_versions'):
+            return self._active_versions[0] if self._active_versions else None
+        return self.versions.filter(is_active=True).first()
+
+    @property
+    def title(self):
+        version = self.active_version
+        return version.title if version else ''
+
+    @property
+    def content(self):
+        version = self.active_version
+        return version.content if version else ''
+
+    @property
+    def embedding(self):
+        version = self.active_version
+        return version.embedding if version else None
 
     def __str__(self):
         return self.title or str(self.id)
@@ -154,20 +182,15 @@ class Note(models.Model):
     def get_absolute_url(self):
         return reverse('notes:note:root', kwargs={'note_id': self.id})
 
-    def save(self, *args, update_fields=None, **kwargs):
-        super().save(*args, update_fields=update_fields, **kwargs)
-        if (
-            not self.title and
-            (update_fields is None or 'title' in update_fields)
-        ):
-            from .tasks import generate_note_title
-            async_task(generate_note_title, note_id=self.id)
-        if (
-            self.embedding is None and
-            (update_fields is None or 'embedding' in update_fields)
-        ):
-            from .tasks import generate_note_embedding
-            async_task(generate_note_embedding, note_id=self.id)
+    def create_version(self, title='', content=''):
+        # Deactivate existing active versions
+        self.versions.filter(is_active=True).update(is_active=False)
+        return NoteVersion.objects.create(
+            note=self,
+            title=title,
+            content=content,
+            is_active=True,
+        )
 
     def schedule_generate_references(self):
         self.generating_references = True
@@ -213,6 +236,72 @@ class Note(models.Model):
                 to_create[reference.target_note] = reference
         Reference.objects.bulk_create(to_create.values())
         Reference.objects.filter(id__in=[reference.id for reference in to_delete.values()]).delete()
+
+
+class NoteVersion(models.Model):
+    pk = models.CompositePrimaryKey("note_id", "created_at")
+    note = models.ForeignKey(
+        to=Note,
+        on_delete=models.CASCADE,
+        related_name='versions',
+        verbose_name=_('note'),
+    )
+    created_at = models.DateTimeField(
+        default=timezone.now,
+        verbose_name=_('created at'),
+    )
+
+    is_active = models.BooleanField(
+        default=False,
+        verbose_name=_('is active'),
+    )
+
+    title = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name=_('title'),
+    )
+    content = models.TextField(
+        blank=True,
+        verbose_name=_('content'),
+    )
+    embedding = VectorField(
+        dimensions=3072,
+        verbose_name=_('embedding'),
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = _('note version')
+        verbose_name_plural = _('note versions')
+        ordering = ('note', '-created_at')
+        get_latest_by = 'created_at'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['note'],
+                condition=Q(is_active=True),
+                name='unique_active_version_per_note',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.note} @ {self.created_at}'
+
+    def save(self, *args, update_fields=None, **kwargs):
+        super().save(*args, update_fields=update_fields, **kwargs)
+        if (
+            not self.title and
+            (update_fields is None or 'title' in update_fields)
+        ):
+            from .tasks import generate_note_version_title
+            async_task(generate_note_version_title, note_id=self.note_id, created_at=self.created_at)
+        if (
+            self.embedding is None and
+            (update_fields is None or 'embedding' in update_fields)
+        ):
+            from .tasks import generate_note_version_embedding
+            async_task(generate_note_version_embedding, note_id=self.note_id, created_at=self.created_at)
 
 
 class Alias(models.Model):

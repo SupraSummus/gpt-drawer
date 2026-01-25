@@ -98,8 +98,8 @@ def create_answer(request, note_reference_id):
         return root(request, note_reference_id)
     note = Note.objects.create(
         notebook_id=note_reference.notebook_id,
-        content=form.cleaned_data['answer'],
     )
+    note.create_version(content=form.cleaned_data['answer'])
     note_reference.target_note = note
     note_reference.save(update_fields=['target_note'])
     return redirect(note)

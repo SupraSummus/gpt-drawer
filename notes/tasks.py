@@ -5,7 +5,7 @@ from django.db import transaction
 from django_q.tasks import async_task
 from pgvector.django import CosineDistance
 
-from .models import Note, NoteReferenceState, NoteState, Reference
+from .models import Note, NoteReferenceState, NoteState, NoteVersion, Reference
 from .openai import generate_embedding, openai_client
 
 
@@ -58,12 +58,21 @@ def generate_references(note_id):
         new_notes = [
             Note(
                 notebook_id=note.notebook_id,
-                content=content,
                 state=NoteState.SUGGESTED,
             )
-            for content in new_notes_content
+            for _ in new_notes_content
         ]
         Note.objects.bulk_create(new_notes)
+        new_versions = [
+            NoteVersion(
+                note=new_note,
+                content=content,
+                is_active=True,
+            )
+            for new_note, content in zip(new_notes, new_notes_content)
+        ]
+        NoteVersion.objects.bulk_create(new_versions)
+
         references = [
             Reference(
                 note=note,
@@ -73,9 +82,10 @@ def generate_references(note_id):
             for new_note in new_notes
         ]
         Reference.objects.bulk_create(references)
-    for new_note in new_notes:
-        async_task(generate_note_title, note_id=new_note.id)
-        async_task(generate_note_embedding, note_id=new_note.id)
+
+    for version in new_versions:
+        async_task(generate_note_version_title, note_id=version.note_id, created_at=version.created_at)
+        async_task(generate_note_version_embedding, note_id=version.note_id, created_at=version.created_at)
 
     note.generating_references = False
     note.save(update_fields=['generating_references'])
@@ -98,8 +108,9 @@ def check_reference_uniqueness(reference_id):
         reference.save(update_fields=['state'])
 
 
-def generate_note_title(note_id):
-    note = Note.objects.get(id=note_id)
+def generate_note_version_title(note_id, created_at):
+    version = NoteVersion.objects.select_related('note').get(note_id=note_id, created_at=created_at)
+    note = version.note
 
     messages = [
         {
@@ -121,7 +132,7 @@ def generate_note_title(note_id):
 
     messages.append({
         "role": "user",
-        "content": note.content,
+        "content": version.content,
     })
     response = openai_client.chat.completions.create(
         messages=messages,
@@ -129,8 +140,8 @@ def generate_note_title(note_id):
         temperature=0,
         max_tokens=100,
     )
-    note.title = response.choices[0].message.content[:64]
-    note.save(update_fields=['title'])
+    version.title = response.choices[0].message.content[:64]
+    version.save(update_fields=['title'])
 
 
 def get_example_notes(note, count=3):
@@ -139,7 +150,7 @@ def get_example_notes(note, count=3):
     ).order_by('?')[:count]
 
 
-def generate_note_embedding(note_id):
-    note = Note.objects.get(id=note_id)
-    note.embedding = generate_embedding(note.content)
-    note.save(update_fields=['embedding'])
+def generate_note_version_embedding(note_id, created_at):
+    version = NoteVersion.objects.get(note_id=note_id, created_at=created_at)
+    version.embedding = generate_embedding(version.content)
+    version.save(update_fields=['embedding'])

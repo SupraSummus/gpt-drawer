@@ -100,10 +100,10 @@ def create_note(request, notebook_id):
     notebook = get_notebook(request, notebook_id)
     form = NoteForm(request.POST)
     if form.is_valid():
-        form.instance.notebook = notebook
-        form.save()
+        note = Note.objects.create(notebook=notebook)
+        note.create_version(content=form.cleaned_data['content'])
         return TemplateResponse(request, note_card_template, {
-            'note': form.instance,
+            'note': note,
         })
     else:
         return TemplateResponse(request, new_note_template, {
@@ -112,10 +112,8 @@ def create_note(request, notebook_id):
         })
 
 
-class NoteForm(forms.ModelForm):
-    class Meta:
-        model = Note
-        fields = ['content']
+class NoteForm(forms.Form):
+    content = forms.CharField(widget=forms.Textarea)
 
 
 @router.route('GET', 'note/<uuid:note_id>')

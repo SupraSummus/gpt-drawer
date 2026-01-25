@@ -29,6 +29,7 @@ class NoteShortSerializer(serializers.ModelSerializer):
         view_name='api:note-detail',
         lookup_field='pk',
     )
+    title = serializers.CharField(required=False, allow_blank=True, default='')
 
     class Meta:
         model = Note
@@ -37,6 +38,11 @@ class NoteShortSerializer(serializers.ModelSerializer):
             'id',
             'title',
         )
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['title'] = instance.title
+        return ret
 
 
 class AliasSerializer(serializers.ModelSerializer):
@@ -97,6 +103,7 @@ class NoteSerializer(NoteShortSerializer):
         queryset=Notebook.objects.all(),
         source='notebook',
     )
+    content = serializers.CharField(required=False, allow_blank=True, default='')
     aliases = AliasSerializer(many=True)
     references = ReferenceSerializer(many=True)
 
@@ -115,7 +122,10 @@ class NoteSerializer(NoteShortSerializer):
     def create(self, validated_data):
         aliases_data = validated_data.pop('aliases')
         references_data = validated_data.pop('references')
-        note = super().create(validated_data)
+        title = validated_data.pop('title', '')
+        content = validated_data.pop('content', '')
+        note = Note.objects.create(**validated_data)
+        note.create_version(title=title, content=content)
         note.set_aliases([Alias(**alias_data, note=note) for alias_data in aliases_data])
         note.set_references([Reference(**reference_data, note=note) for reference_data in references_data])
         return note
@@ -123,12 +133,25 @@ class NoteSerializer(NoteShortSerializer):
     def update(self, instance, validated_data):
         aliases_data = validated_data.pop('aliases', None)
         references_data = validated_data.pop('references', None)
-        note = super().update(instance, validated_data)
+        title = validated_data.pop('title', None)
+        content = validated_data.pop('content', None)
+
+        # Update note fields (like notebook)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Create new version if title or content changed
+        if title is not None or content is not None:
+            new_title = title if title is not None else instance.title
+            new_content = content if content is not None else instance.content
+            instance.create_version(title=new_title, content=new_content)
+
         if aliases_data is not None:
-            note.set_aliases([Alias(**alias_data, note=note) for alias_data in aliases_data])
+            instance.set_aliases([Alias(**alias_data, note=instance) for alias_data in aliases_data])
         if references_data is not None:
-            note.set_references([Reference(**reference_data, note=note) for reference_data in references_data])
-        return note
+            instance.set_references([Reference(**reference_data, note=instance) for reference_data in references_data])
+        return instance
 
     def validate(self, data):
         # we check if references are in the same notebook
@@ -140,3 +163,8 @@ class NoteSerializer(NoteShortSerializer):
                 })
 
         return data
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['content'] = instance.content
+        return ret

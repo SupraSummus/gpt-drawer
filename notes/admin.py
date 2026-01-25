@@ -5,7 +5,7 @@ from django.urls import resolve
 
 from admin_utils import get_autocomplete_object_id
 
-from .models import Alias, Note, Notebook, NotebookUserPermission, Reference
+from .models import Alias, Note, Notebook, NotebookUserPermission, NoteVersion, Reference
 
 
 class NotebookUserPermissionInline(admin.TabularInline):
@@ -34,13 +34,21 @@ class AliasInline(admin.TabularInline):
     extra = 0
 
 
+class NoteVersionInline(admin.TabularInline):
+    model = NoteVersion
+    extra = 0
+    fields = ('created_at', 'title', 'content')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+
+
 @admin.register(Note)
 class NoteAdmin(admin.ModelAdmin):
     list_display = ('title', 'notebook', 'id')
-    search_fields = ('title', 'id')
+    search_fields = ('versions__title', 'id')
     list_filter = ('notebook',)
 
-    inlines = (AliasInline, ReferenceInline)
+    inlines = (AliasInline, ReferenceInline, NoteVersionInline)
 
     def get_search_results(self, request, queryset, search_term):
         if note_id := get_autocomplete_object_id(request, Reference, 'target_note'):

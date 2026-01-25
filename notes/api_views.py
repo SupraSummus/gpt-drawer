@@ -38,7 +38,7 @@ class NoteFiterSet(django_filters.FilterSet):
 
 
 class NoteViewSet(ModelViewSet):
-    queryset = Note.objects.all()
+    queryset = Note.objects.with_active_version()
     serializer_class = NoteSerializer
     filterset_class = NoteFiterSet
 

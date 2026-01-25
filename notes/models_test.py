@@ -1,7 +1,7 @@
 import factory
 import pytest
 
-from .models import Alias, Note, Notebook, NotebookUserPermission, Reference
+from .models import Alias, Note, Notebook, NotebookUserPermission, NoteVersion, Reference
 
 
 class NotebookFactory(factory.django.DjangoModelFactory):
@@ -14,12 +14,34 @@ class NotebookUserPermissionFactory(factory.django.DjangoModelFactory):
         model = NotebookUserPermission
 
 
+class NoteVersionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = NoteVersion
+
+    title = factory.Sequence(lambda n: f'Test note {n}')
+    content = ''
+    is_active = True
+
+
+_note_counter = 0
+
+
 class NoteFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Note
+        skip_postgeneration_save = True
 
     notebook = factory.SubFactory(NotebookFactory)
-    title = factory.Sequence(lambda n: f'Test note {n}')
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        global _note_counter
+        _note_counter += 1
+        title = kwargs.pop('title', f'Test note {_note_counter}')
+        content = kwargs.pop('content', '')
+        note = super()._create(model_class, *args, **kwargs)
+        NoteVersion.objects.create(note=note, title=title, content=content, is_active=True)
+        return note
 
 
 class AliasFactory(factory.django.DjangoModelFactory):
@@ -34,7 +56,7 @@ class ReferenceFactory(factory.django.DjangoModelFactory):
         model = Reference
 
     note = factory.SubFactory(NoteFactory)
-    target_note = factory.SubFactory(NoteFactory, notebook=factory.SelfAttribute('note.notebook'))
+    target_note = factory.SubFactory(NoteFactory, notebook=factory.SelfAttribute('..note.notebook'))
 
 
 NoteReferenceFactory = ReferenceFactory

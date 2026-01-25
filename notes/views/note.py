@@ -184,7 +184,10 @@ def root(request, note_id):
 @router.route('GET', '<uuid:note_id>/edit/')
 def edit(request, note_id):
     note = get_note(request, note_id)
-    form = NoteForm(instance=note)
+    form = NoteForm(initial={
+        'title': note.title,
+        'content': note.content,
+    })
     return TemplateResponse(request, note_block, {
       'note': note,
       'editing': True,
@@ -195,9 +198,12 @@ def edit(request, note_id):
 @router.route('POST', '<uuid:note_id>/edit/')
 def edit_save(request, note_id):
     note = get_note(request, note_id)
-    form = NoteForm(request.POST, instance=note)
+    form = NoteForm(request.POST)
     if form.is_valid():
-        form.save()
+        note.create_version(
+            title=form.cleaned_data['title'],
+            content=form.cleaned_data['content'],
+        )
         return TemplateResponse(request, note_block, {
           'note': note,
           'editing': False,
@@ -210,10 +216,9 @@ def edit_save(request, note_id):
         })
 
 
-class NoteForm(forms.ModelForm):
-    class Meta:
-        model = Note
-        fields = ('title', 'content')
+class NoteForm(forms.Form):
+    title = forms.CharField(max_length=64, required=False)
+    content = forms.CharField(widget=forms.Textarea, required=False)
 
 
 @router.route('GET', '<uuid:note_id>/read/')
@@ -270,9 +275,11 @@ def new_note_save(request, note_id):
     note = get_note(request, note_id)
     form = NoteForm(request.POST)
     if form.is_valid():
-        new_note = form.save(commit=False)
-        new_note.notebook = note.notebook
-        new_note.save()
+        new_note = Note.objects.create(notebook=note.notebook)
+        new_note.create_version(
+            title=form.cleaned_data['title'],
+            content=form.cleaned_data['content'],
+        )
         note_reference = NoteReference(note=note, target_note=new_note)
         note_reference.save()
         return TemplateResponse(request, note_reference_block, {
