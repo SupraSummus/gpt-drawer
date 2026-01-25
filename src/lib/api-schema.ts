@@ -387,6 +387,11 @@ export interface components {
             readonly id: string;
             title: string;
         };
+        LoginResponse: {
+            /** Format: date-time */
+            expiry: string;
+            token: string;
+        };
         Note: {
             /**
              * detail url
@@ -613,7 +618,7 @@ export interface components {
              * Format: email
              */
             readonly email?: string;
-            readonly auth_method?: string;
+            readonly auth_method?: string | null;
         };
         PatchedUser: {
             /**
@@ -665,7 +670,7 @@ export interface components {
              * Format: email
              */
             readonly email: string;
-            readonly auth_method: string;
+            readonly auth_method: string | null;
         };
         SetPassword: {
             new_password: string;
@@ -733,12 +738,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
             };
         };
     };
@@ -1463,6 +1469,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this alias. */
                 id: string;
                 note_pk: string;
             };
@@ -1485,6 +1492,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this alias. */
                 id: string;
                 note_pk: string;
             };
@@ -1513,6 +1521,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this alias. */
                 id: string;
                 note_pk: string;
             };
@@ -1534,6 +1543,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this alias. */
                 id: string;
                 note_pk: string;
             };
@@ -1613,6 +1623,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this reference. */
                 id: string;
                 note_pk: string;
             };
@@ -1635,6 +1646,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this reference. */
                 id: string;
                 note_pk: string;
             };
@@ -1663,6 +1675,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this reference. */
                 id: string;
                 note_pk: string;
             };
@@ -1684,6 +1697,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description A UUID string identifying this reference. */
                 id: string;
                 note_pk: string;
             };

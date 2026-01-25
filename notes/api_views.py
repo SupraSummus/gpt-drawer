@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Note, Notebook
+from .models import Alias, Note, Notebook, Reference
 from .serializers import AliasSerializer, NotebookSerializer, NoteSerializer, ReferenceSerializer
 
 
@@ -67,6 +67,8 @@ class AliasViewSet(InNoteViewSetMixin, ModelViewSet):
     serializer_class = AliasSerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Alias.objects.none()
         return self.note.aliases
 
 
@@ -74,4 +76,6 @@ class ReferenceViewSet(InNoteViewSetMixin, ModelViewSet):
     serializer_class = ReferenceSerializer
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Reference.objects.none()
         return self.note.references

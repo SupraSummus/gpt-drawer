@@ -13,9 +13,15 @@ paths:
         a Knox token for subsequent API requests.
       tags:
       - auth
+      security:
+      - basicAuth: []
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: ''
   /api/auth/logout/:
     post:
       operationId: auth_logout_create
@@ -723,6 +729,8 @@ paths:
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Identifier
         required: true
       - name: page
         required: false
@@ -749,6 +757,8 @@ paths:
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Identifier
         required: true
       tags:
       - notes
@@ -782,11 +792,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this alias.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Identifier
         required: true
       tags:
       - notes
@@ -807,11 +822,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this alias.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Identifier
         required: true
       tags:
       - notes
@@ -844,11 +864,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this alias.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Identifier
         required: true
       tags:
       - notes
@@ -880,11 +905,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this alias.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Identifier
         required: true
       tags:
       - notes
@@ -902,6 +932,8 @@ paths:
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Source note
         required: true
       - name: page
         required: false
@@ -928,6 +960,8 @@ paths:
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Source note
         required: true
       tags:
       - notes
@@ -961,11 +995,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this reference.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Source note
         required: true
       tags:
       - notes
@@ -986,11 +1025,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this reference.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Source note
         required: true
       tags:
       - notes
@@ -1023,11 +1067,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this reference.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Source note
         required: true
       tags:
       - notes
@@ -1059,11 +1108,16 @@ paths:
         name: id
         schema:
           type: string
+          format: uuid
+          title: Identifier
+        description: A UUID string identifying this reference.
         required: true
       - in: path
         name: note_pk
         schema:
           type: string
+          format: uuid
+          title: Source note
         required: true
       tags:
       - notes
@@ -1217,6 +1271,17 @@ components:
       - _detail_url
       - id
       - title
+    LoginResponse:
+      type: object
+      properties:
+        expiry:
+          type: string
+          format: date-time
+        token:
+          type: string
+      required:
+      - expiry
+      - token
     Note:
       type: object
       properties:
@@ -1547,6 +1612,7 @@ components:
           title: Email address
         auth_method:
           type: string
+          nullable: true
           readOnly: true
     PatchedUser:
       type: object
@@ -1622,6 +1688,7 @@ components:
           title: Email address
         auth_method:
           type: string
+          nullable: true
           readOnly: true
       required:
       - auth_method
@@ -1713,6 +1780,9 @@ components:
       required:
       - new_username
   securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
     cookieAuth:
       type: apiKey
       in: cookie

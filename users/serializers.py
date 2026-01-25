@@ -13,7 +13,7 @@ class SessionSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email', 'auth_method')
         read_only_fields = ('id', 'username', 'email', 'auth_method')
 
-    def get_auth_method(self, obj):
+    def get_auth_method(self, obj) -> str | None:
         request = self.context.get('request')
         if not request or not request.successful_authenticator:
             return None
