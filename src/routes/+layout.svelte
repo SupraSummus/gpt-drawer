@@ -9,7 +9,7 @@
 
 	async function handleLogout() {
 		await auth.logout();
-		goto(resolve('/login'));
+		void goto(resolve('/login'));
 	}
 </script>
 
@@ -31,6 +31,7 @@
 	</header>
 
 	<main>
+		<!-- eslint-disable-next-line @typescript-eslint/no-unsafe-call -->
 		{@render children()}
 	</main>
 {/if}

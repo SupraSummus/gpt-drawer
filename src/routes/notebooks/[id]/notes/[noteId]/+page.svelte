@@ -39,13 +39,13 @@
 
 	$effect(() => {
 		if (!auth.isAuthenticated && auth.isInitialized) {
-			goto(resolve('/login'));
+			void goto(resolve('/login'));
 		}
 	});
 
 	$effect(() => {
 		if (auth.isAuthenticated && noteId) {
-			loadNote();
+			void loadNote();
 		}
 	});
 
@@ -55,8 +55,8 @@
 		error = '';
 		try {
 			note = await fetchNote(noteId);
-			title = note.title ?? '';
-			content = note.content ?? '';
+			title = note.title;
+			content = note.content;
 			dirty = false;
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to load note';
@@ -164,7 +164,7 @@
 
 <div class="mx-auto max-w-4xl p-6">
 	<nav class="mb-4">
-		<a href={resolve(`/notebooks/${notebookId}`)} class="text-blue-600 hover:underline">
+		<a href={resolve(`/notebooks/${notebookId ?? ''}`)} class="text-blue-600 hover:underline">
 			← Back to Notes
 		</a>
 	</nav>
@@ -258,7 +258,7 @@
 						{#each note.references as ref (ref.id)}
 							<li class="flex items-center justify-between rounded bg-gray-50 p-3">
 								<a
-									href={resolve(`/notebooks/${notebookId}/notes/${ref.target_note.id}`)}
+									href={resolve(`/notebooks/${notebookId ?? ''}/notes/${ref.target_note.id}`)}
 									class="text-blue-600 hover:underline"
 								>
 									{ref.target_note.title || '(Untitled)'}
@@ -280,7 +280,7 @@
 					<form
 						onsubmit={(e) => {
 							e.preventDefault();
-							handleSearchNotes();
+							void handleSearchNotes();
 						}}
 						class="flex gap-2"
 					>

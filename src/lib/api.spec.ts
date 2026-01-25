@@ -22,7 +22,9 @@ const localStorageMock = (() => {
 			store[key] = value;
 		},
 		removeItem: (key: string) => {
-			delete store[key];
+			const { [key]: _, ...rest } = store;
+			void _;
+			store = rest;
 		},
 		clear: () => {
 			store = {};
@@ -39,8 +41,8 @@ function mockFetch(response: Response) {
 
 function mockFetchSequence(...responses: Response[]) {
 	let callIndex = 0;
-	mockFetchFn.mockImplementation(async () => {
-		return responses[callIndex++];
+	mockFetchFn.mockImplementation(() => {
+		return Promise.resolve(responses[callIndex++]);
 	});
 	return mockFetchFn;
 }

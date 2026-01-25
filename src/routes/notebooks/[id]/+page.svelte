@@ -23,13 +23,13 @@
 
 	$effect(() => {
 		if (!auth.isAuthenticated && auth.isInitialized) {
-			goto(resolve('/login'));
+			void goto(resolve('/login'));
 		}
 	});
 
 	$effect(() => {
 		if (auth.isAuthenticated && notebookId) {
-			loadData();
+			void loadData();
 		}
 	});
 
@@ -65,7 +65,7 @@
 		creating = true;
 		try {
 			const note = await createNote(notebookId);
-			goto(resolve(`/notebooks/${notebookId}/notes/${note.id}`));
+			void goto(resolve(`/notebooks/${notebookId}/notes/${note.id}`));
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to create note';
 			creating = false;
@@ -110,7 +110,7 @@
 		<form
 			onsubmit={(e) => {
 				e.preventDefault();
-				handleSearch();
+				void handleSearch();
 			}}
 			class="mb-6 flex gap-2"
 		>
@@ -134,7 +134,7 @@
 				{#each notes as note (note.id)}
 					<li class="rounded border p-4 hover:bg-gray-50">
 						<div class="flex items-start justify-between gap-4">
-							<a href={resolve(`/notebooks/${notebookId}/notes/${note.id}`)} class="flex-1">
+							<a href={resolve(`/notebooks/${notebookId ?? ''}/notes/${note.id}`)} class="flex-1">
 								<h3 class="text-lg font-medium text-blue-600 hover:underline">
 									{note.title || '(Untitled)'}
 								</h3>

@@ -10,47 +10,47 @@ export type Reference = components['schemas']['Reference'];
 // Notebooks
 
 export async function fetchNotebooks(): Promise<Notebook[]> {
-	const { data, error } = await apiClient.GET('/api/notebooks/');
-	if (error) throw new Error('Failed to fetch notebooks');
-	return data?.results ?? [];
+	const { data, response } = await apiClient.GET('/api/notebooks/');
+	if (!response.ok || !data) throw new Error('Failed to fetch notebooks');
+	return data.results;
 }
 
 export async function fetchNotebook(id: string): Promise<Notebook> {
-	const { data, error } = await apiClient.GET('/api/notebooks/{id}/', {
+	const { data, response } = await apiClient.GET('/api/notebooks/{id}/', {
 		params: { path: { id } },
 	});
-	if (error) throw new Error('Failed to fetch notebook');
+	if (!response.ok || !data) throw new Error('Failed to fetch notebook');
 	return data;
 }
 
 export async function createNotebook(title: string): Promise<Notebook> {
-	const { data, error } = await apiClient.POST('/api/notebooks/', {
+	const { data, response } = await apiClient.POST('/api/notebooks/', {
 		body: { title } as Notebook,
 	});
-	if (error) throw new Error('Failed to create notebook');
+	if (!response.ok || !data) throw new Error('Failed to create notebook');
 	return data;
 }
 
 export async function updateNotebook(id: string, title: string): Promise<Notebook> {
-	const { data, error } = await apiClient.PATCH('/api/notebooks/{id}/', {
+	const { data, response } = await apiClient.PATCH('/api/notebooks/{id}/', {
 		params: { path: { id } },
 		body: { title },
 	});
-	if (error) throw new Error('Failed to update notebook');
+	if (!response.ok || !data) throw new Error('Failed to update notebook');
 	return data;
 }
 
 export async function deleteNotebook(id: string): Promise<void> {
-	const { error } = await apiClient.DELETE('/api/notebooks/{id}/', {
+	const { response } = await apiClient.DELETE('/api/notebooks/{id}/', {
 		params: { path: { id } },
 	});
-	if (error) throw new Error('Failed to delete notebook');
+	if (!response.ok) throw new Error('Failed to delete notebook');
 }
 
 // Notes
 
 export async function fetchNotes(notebookId?: string, search?: string): Promise<Note[]> {
-	const { data, error } = await apiClient.GET('/api/notes/', {
+	const { data, response } = await apiClient.GET('/api/notes/', {
 		params: {
 			query: {
 				notebook_id: notebookId,
@@ -58,15 +58,15 @@ export async function fetchNotes(notebookId?: string, search?: string): Promise<
 			},
 		},
 	});
-	if (error) throw new Error('Failed to fetch notes');
-	return data?.results ?? [];
+	if (!response.ok || !data) throw new Error('Failed to fetch notes');
+	return data.results;
 }
 
 export async function fetchNote(id: string): Promise<Note> {
-	const { data, error } = await apiClient.GET('/api/notes/{id}/', {
+	const { data, response } = await apiClient.GET('/api/notes/{id}/', {
 		params: { path: { id } },
 	});
-	if (error) throw new Error('Failed to fetch note');
+	if (!response.ok || !data) throw new Error('Failed to fetch note');
 	return data;
 }
 
@@ -75,10 +75,10 @@ export async function createNote(
 	title?: string,
 	content?: string,
 ): Promise<Note> {
-	const { data, error } = await apiClient.POST('/api/notes/', {
+	const { data, response } = await apiClient.POST('/api/notes/', {
 		body: { notebook_id: notebookId, title, content } as Note,
 	});
-	if (error) throw new Error('Failed to create note');
+	if (!response.ok || !data) throw new Error('Failed to create note');
 	return data;
 }
 
@@ -86,53 +86,53 @@ export async function updateNote(
 	id: string,
 	updates: { title?: string; content?: string },
 ): Promise<Note> {
-	const { data, error } = await apiClient.PATCH('/api/notes/{id}/', {
+	const { data, response } = await apiClient.PATCH('/api/notes/{id}/', {
 		params: { path: { id } },
 		body: updates as Note,
 	});
-	if (error) throw new Error('Failed to update note');
+	if (!response.ok || !data) throw new Error('Failed to update note');
 	return data;
 }
 
 export async function deleteNote(id: string): Promise<void> {
-	const { error } = await apiClient.DELETE('/api/notes/{id}/', {
+	const { response } = await apiClient.DELETE('/api/notes/{id}/', {
 		params: { path: { id } },
 	});
-	if (error) throw new Error('Failed to delete note');
+	if (!response.ok) throw new Error('Failed to delete note');
 }
 
 // Aliases
 
 export async function createAlias(noteId: string, title: string): Promise<Alias> {
-	const { data, error } = await apiClient.POST('/api/notes/{note_pk}/aliases/', {
+	const { data, response } = await apiClient.POST('/api/notes/{note_pk}/aliases/', {
 		params: { path: { note_pk: noteId } },
 		body: { title } as Alias,
 	});
-	if (error) throw new Error('Failed to create alias');
+	if (!response.ok || !data) throw new Error('Failed to create alias');
 	return data;
 }
 
 export async function deleteAlias(noteId: string, aliasId: string): Promise<void> {
-	const { error } = await apiClient.DELETE('/api/notes/{note_pk}/aliases/{id}/', {
+	const { response } = await apiClient.DELETE('/api/notes/{note_pk}/aliases/{id}/', {
 		params: { path: { note_pk: noteId, id: aliasId } },
 	});
-	if (error) throw new Error('Failed to delete alias');
+	if (!response.ok) throw new Error('Failed to delete alias');
 }
 
 // References
 
 export async function createReference(noteId: string, targetNoteId: string): Promise<Reference> {
-	const { data, error } = await apiClient.POST('/api/notes/{note_pk}/references/', {
+	const { data, response } = await apiClient.POST('/api/notes/{note_pk}/references/', {
 		params: { path: { note_pk: noteId } },
 		body: { target_note_id: targetNoteId } as Reference,
 	});
-	if (error) throw new Error('Failed to create reference');
+	if (!response.ok || !data) throw new Error('Failed to create reference');
 	return data;
 }
 
 export async function deleteReference(noteId: string, referenceId: string): Promise<void> {
-	const { error } = await apiClient.DELETE('/api/notes/{note_pk}/references/{id}/', {
+	const { response } = await apiClient.DELETE('/api/notes/{note_pk}/references/{id}/', {
 		params: { path: { note_pk: noteId, id: referenceId } },
 	});
-	if (error) throw new Error('Failed to delete reference');
+	if (!response.ok) throw new Error('Failed to delete reference');
 }

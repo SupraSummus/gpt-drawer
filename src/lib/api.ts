@@ -35,9 +35,9 @@ export async function fetchCurrentUser(): Promise<User | null> {
 		return null;
 	}
 
-	const { data, error, response } = await apiClient.GET('/api/auth/users/me/');
+	const { data, response } = await apiClient.GET('/api/auth/users/me/');
 
-	if (error || !response.ok) {
+	if (!response.ok) {
 		setStoredToken(null);
 		return null;
 	}
@@ -46,13 +46,13 @@ export async function fetchCurrentUser(): Promise<User | null> {
 }
 
 export async function login(username: string, password: string): Promise<AuthState> {
-	const { data, error } = await apiClient.POST('/api/auth/login/', {
+	const { data, response } = await apiClient.POST('/api/auth/login/', {
 		headers: {
 			Authorization: 'Basic ' + btoa(`${username}:${password}`),
 		},
 	});
 
-	if (error || !data) {
+	if (!response.ok || !data) {
 		throw new Error('Invalid credentials');
 	}
 

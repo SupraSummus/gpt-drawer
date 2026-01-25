@@ -14,7 +14,7 @@ function createAuthStore() {
 		const token = getStoredToken();
 		if (token) {
 			state = { user: null, token };
-			fetchCurrentUser()
+			void fetchCurrentUser()
 				.then((user) => {
 					state = { user, token: state.token };
 				})

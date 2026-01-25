@@ -12,13 +12,13 @@
 
 	$effect(() => {
 		if (!auth.isAuthenticated && auth.isInitialized) {
-			goto(resolve('/login'));
+			void goto(resolve('/login'));
 		}
 	});
 
 	$effect(() => {
 		if (auth.isAuthenticated) {
-			loadNotebooks();
+			void loadNotebooks();
 		}
 	});
 

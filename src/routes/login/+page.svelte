@@ -15,7 +15,7 @@
 
 		try {
 			await auth.login(username, password);
-			goto(resolve('/'));
+			void goto(resolve('/'));
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Login failed';
 		} finally {
