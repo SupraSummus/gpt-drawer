@@ -2,8 +2,8 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from ..models import Alias, Note, Reference
-from .factories import AliasFactory, NotebookFactory, NotebookUserPermissionFactory, NoteFactory, ReferenceFactory
+from .models import Alias, Note, Reference
+from .models_test import AliasFactory, NotebookFactory, NotebookUserPermissionFactory, NoteFactory, ReferenceFactory
 
 
 @pytest.fixture
@@ -15,12 +15,10 @@ def user_notebook(user):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize('term,found', [
-    ('Moria', True),  # match in title
-    ('kha', True),  # match in alias
-    ('fiction', False),  # match in content
-    ('oria', False),  # match not at the beginning of a word
-    # TODO
-    # ('pit', True),  # match on second word
+    ('Moria', True),
+    ('kha', True),
+    ('fiction', False),
+    ('oria', False),
 ])
 def test_note_search(user_client, user_notebook, term, found):
     note = NoteFactory(
@@ -58,12 +56,12 @@ def test_note_create(user_client, user_notebook):
             'aliases': [
                 {'title': 'Test alias 1'},
                 {'title': 'Test alias 2'},
-                {'title': 'Test alias 1'},  # Duplicate should be ignored
+                {'title': 'Test alias 1'},
             ],
             'references': [
                 {'target_note_id': other_note_a.id},
                 {'target_note_id': other_note_b.id},
-                {'target_note_id': other_note_a.id},  # Duplicate should be ignored
+                {'target_note_id': other_note_a.id},
             ],
         },
         content_type='application/json',

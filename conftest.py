@@ -3,8 +3,8 @@ from django.test.client import Client
 
 
 pytest_plugins = [
-    'users.tests.fixtures',
-    'notes.tests.fixtures',
+    'users.models_test',
+    'notes.models_test',
 ]
 
 

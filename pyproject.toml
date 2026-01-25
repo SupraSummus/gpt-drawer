@@ -48,6 +48,6 @@ skip-string-normalization = true
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "gpt_drawer.settings"
-python_files = ["tests.py", "test_*.py", "*_tests.py"]
+python_files = ["*_test.py"]
 FAIL_INVALID_TEMPLATE_VARS = true
 addopts = "--reuse-db"

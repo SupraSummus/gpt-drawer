@@ -47,5 +47,4 @@ def test_note_autocomplete_outside_notebook(admin_client, note, other_notebook_n
         HTTP_REFERER=reverse('admin:notes_note_change', args=(note.id,)),
     )
     assert response.status_code == 200
-    print(response.json())
     assert str(other_notebook_note.id) not in (r['id'] for r in response.json()['results'])

@@ -68,7 +68,7 @@ def test_generate_references(note, monkeypatch, sync_tasks, chat_completion_mock
     note.schedule_generate_references()
 
     note.refresh_from_db()
-    assert not note.generating_references  # we have already finished (sync tasks)
+    assert not note.generating_references
 
     reference = note.references.first()
     target_note = reference.target_note
