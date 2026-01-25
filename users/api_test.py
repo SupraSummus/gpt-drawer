@@ -45,4 +45,17 @@ def test_login_invalid_credentials_returns_401(api_client):
     api_client.credentials(HTTP_AUTHORIZATION=f'Basic {auth_header}')
     response = api_client.post(url)
 
-    assert response.status_code == 401
+    assert response.status_code in [401, 403]
+
+
+@pytest.mark.django_db
+def test_login_with_incorrect_credentials_www_authenticate_header(api_client):
+    url = reverse('knox_login')
+
+    headers = {'HTTP_AUTHORIZATION': f'Basic {_get_basic_auth_header("wrong@example.com", "wrongpassword")}'}
+
+    response = api_client.post(url, **headers)
+
+    www_authenticate = response.headers.get('WWW-Authenticate', '')
+    expected_component = 'Basic realm="api"'
+    assert expected_component not in www_authenticate

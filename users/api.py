@@ -3,6 +3,17 @@ from knox.views import LoginView as KnoxLoginView
 from rest_framework.authentication import BasicAuthentication
 
 
+class NoDialogBasicAuthentication(BasicAuthentication):
+    """
+    BasicAuthentication that suppresses browser auth dialog.
+
+    See: https://stackoverflow.com/a/20221330
+    """
+
+    def authenticate_header(self, request):
+        return None
+
+
 class LoginView(KnoxLoginView):
     """
     Custom login view that uses Basic Authentication.
@@ -11,7 +22,7 @@ class LoginView(KnoxLoginView):
     a Knox token for subsequent API requests.
     """
 
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [NoDialogBasicAuthentication]
 
 
 LogoutView = knox_views.LogoutView
