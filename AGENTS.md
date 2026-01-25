@@ -8,6 +8,7 @@ poetry run ./manage.py makemigrations
 ```
 
 tests style:
+
 - flat pytest functions (no test classes)
 - place tests next to tested code using `_test.py` suffix: `notes/models.py` -> `notes/models_test.py`
 - fixtures and factories go in the test module for the data's origin (e.g., User factories in `users/models_test.py`, Note factories in `notes/models_test.py`)
