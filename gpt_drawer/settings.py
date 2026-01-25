@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_filters',
     'django_q',
     'django_htmx',
+    'knox',
     'users.apps.UsersConfig',
     'notes.apps.NotesConfig',
 ]
@@ -145,9 +146,13 @@ STATICFILES_DIRS = [
 # custom user model
 AUTH_USER_MODEL = 'users.User'
 
+# custom knox token model
+KNOX_TOKEN_MODEL = 'users.AuthToken'
+
 # rest framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'knox.auth.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
@@ -183,3 +188,15 @@ if DEBUG_TOOLBAR_ENABLED:
     INTERNAL_IPS = [
         '127.0.0.1',
     ]
+
+# knox authentication settings
+from datetime import timedelta  # noqa: E402
+
+
+REST_KNOX = {
+    'TOKEN_TTL': timedelta(hours=10),
+    'TOKEN_LIMIT_PER_USER': None,
+    'AUTO_REFRESH': False,
+    'USER_SERIALIZER': 'knox.serializers.UserSerializer',
+    'TOKEN_MODEL': 'users.AuthToken',
+}
