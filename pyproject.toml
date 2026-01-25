@@ -20,6 +20,7 @@ pgvector = "*"
 django-q2 = "*"
 django-htmx = "*"
 django-rest-knox = "*"
+djoser = "^2.3.3"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "*"

@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django_q',
     'django_htmx',
     'knox',
+    'djoser',
     'users.apps.UsersConfig',
     'notes.apps.NotesConfig',
 ]
@@ -199,4 +200,11 @@ REST_KNOX = {
     'AUTO_REFRESH': False,
     'USER_SERIALIZER': 'knox.serializers.UserSerializer',
     'TOKEN_MODEL': 'users.AuthToken',
+}
+
+DJOSER = {
+    'TOKEN_MODEL': None,  # using knox for token auth
+    'SERIALIZERS': {
+        'current_user': 'users.serializers.SessionSerializer',
+    },
 }

@@ -31,6 +31,7 @@ router.route_all('notes/', notes_router, name='notes')
 urlpatterns = (
     path('admin/', admin.site.urls),
     path('api/', include(api_urlpatterns)),
+    path('api/auth/', include('djoser.urls')),
     path('api/auth/', include('users.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
