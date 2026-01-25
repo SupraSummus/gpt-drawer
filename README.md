@@ -1,13 +1,11 @@
-# backend
+# stack
 
-Stack:
+backend:
 
 - poetry
 - django
 
-# frontend
-
-Stack:
+frontend:
 
 - pnpm
 - [sveltekit](https://svelte.dev/docs/kit/)
@@ -32,3 +30,9 @@ pnpm run build
 ```
 
 You can preview the production build with `pnpm run preview`.
+
+## Api schema
+
+```sh
+./manage.py spectacular --file api-schema.yaml --lang en --fail-on-warn && pnpm run generate-api-types
+```

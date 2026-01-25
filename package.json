@@ -14,7 +14,8 @@
 		"format": "prettier --write .",
 		"test:unit": "vitest",
 		"test": "pnpm run test:unit --run && pnpm run test:e2e",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"generate-api-types": "openapi-typescript api-schema.yaml -o src/lib/api-schema.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
@@ -30,6 +31,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.13.1",
 		"globals": "^16.5.0",
+		"openapi-typescript": "^7.10.1",
 		"playwright": "^1.57.0",
 		"prettier": "^3.7.4",
 		"prettier-plugin-svelte": "^3.4.0",

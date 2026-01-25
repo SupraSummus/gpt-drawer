@@ -11,3 +11,6 @@ bun.lockb
 # django templates
 /templates/
 /notes/templates/
+
+api-schema.yaml
+src/lib/api-schema.ts
