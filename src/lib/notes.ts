@@ -20,7 +20,7 @@ export async function fetchNotebook(id: string): Promise<Notebook> {
 		params: { path: { id } },
 	});
 	if (error) throw new Error('Failed to fetch notebook');
-	return data!;
+	return data;
 }
 
 export async function createNotebook(title: string): Promise<Notebook> {
@@ -28,7 +28,7 @@ export async function createNotebook(title: string): Promise<Notebook> {
 		body: { title } as Notebook,
 	});
 	if (error) throw new Error('Failed to create notebook');
-	return data!;
+	return data;
 }
 
 export async function updateNotebook(id: string, title: string): Promise<Notebook> {
@@ -37,7 +37,7 @@ export async function updateNotebook(id: string, title: string): Promise<Noteboo
 		body: { title },
 	});
 	if (error) throw new Error('Failed to update notebook');
-	return data!;
+	return data;
 }
 
 export async function deleteNotebook(id: string): Promise<void> {
@@ -67,7 +67,7 @@ export async function fetchNote(id: string): Promise<Note> {
 		params: { path: { id } },
 	});
 	if (error) throw new Error('Failed to fetch note');
-	return data!;
+	return data;
 }
 
 export async function createNote(
@@ -79,7 +79,7 @@ export async function createNote(
 		body: { notebook_id: notebookId, title, content } as Note,
 	});
 	if (error) throw new Error('Failed to create note');
-	return data!;
+	return data;
 }
 
 export async function updateNote(
@@ -91,7 +91,7 @@ export async function updateNote(
 		body: updates as Note,
 	});
 	if (error) throw new Error('Failed to update note');
-	return data!;
+	return data;
 }
 
 export async function deleteNote(id: string): Promise<void> {
@@ -109,7 +109,7 @@ export async function createAlias(noteId: string, title: string): Promise<Alias>
 		body: { title } as Alias,
 	});
 	if (error) throw new Error('Failed to create alias');
-	return data!;
+	return data;
 }
 
 export async function deleteAlias(noteId: string, aliasId: string): Promise<void> {
@@ -127,7 +127,7 @@ export async function createReference(noteId: string, targetNoteId: string): Pro
 		body: { target_note_id: targetNoteId } as Reference,
 	});
 	if (error) throw new Error('Failed to create reference');
-	return data!;
+	return data;
 }
 
 export async function deleteReference(noteId: string, referenceId: string): Promise<void> {
