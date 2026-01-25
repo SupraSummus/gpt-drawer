@@ -65,17 +65,15 @@ class InNoteViewSetMixin:
 
 class AliasViewSet(InNoteViewSetMixin, ModelViewSet):
     serializer_class = AliasSerializer
+    queryset = Alias.objects.none()
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return Alias.objects.none()
         return self.note.aliases
 
 
 class ReferenceViewSet(InNoteViewSetMixin, ModelViewSet):
     serializer_class = ReferenceSerializer
+    queryset = Reference.objects.none()
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return Reference.objects.none()
         return self.note.references
